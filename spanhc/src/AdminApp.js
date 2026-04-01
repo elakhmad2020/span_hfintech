@@ -5,79 +5,51 @@ const ADMIN_EMAIL = 'ahmadabdullahibayero@gmail.com';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&display=swap');
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --primary: #459DAF;
-    --primary-light: #5bb3c5;
-    --primary-dark: #357f90;
-    --primary-pale: #eef7f9;
-    --navy: #1a2f3e;
-    --slate: #5a7a8a;
-    --slate-light: #8aaabb;
-    --bg: #f5f7f8;
-    --white: #ffffff;
-    --danger: #e05252;
-    --success: #2fb88a;
-    --warning: #e8a444;
-    --card-shadow: 0 1px 12px rgba(69,157,175,0.07);
-    --border: #e8eef0;
+    --primary: #459DAF; --primary-light: #5bb3c5; --primary-dark: #357f90;
+    --primary-pale: #eef7f9; --navy: #1a2f3e; --slate: #5a7a8a;
+    --slate-light: #8aaabb; --bg: #f5f7f8; --white: #ffffff;
+    --danger: #e05252; --success: #2fb88a; --warning: #e8a444;
+    --card-shadow: 0 1px 12px rgba(69,157,175,0.07); --border: #e8eef0;
   }
-
   body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--navy); }
-
   .admin-layout { display: flex; min-height: 100vh; }
-
-  .admin-sidebar {
-    width: 240px; min-height: 100vh; background: white;
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
-  }
+  .admin-sidebar { width: 240px; min-height: 100vh; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
   .admin-logo { padding: 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
   .admin-logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: white; font-family: 'Montserrat', sans-serif; }
   .admin-logo-text { font-size: 12px; font-weight: 800; color: var(--navy); font-family: 'Montserrat', sans-serif; line-height: 1.3; }
   .admin-logo-tag { font-size: 9px; color: var(--primary); font-weight: 600; }
-
   .admin-nav { flex: 1; padding: 12px 10px; }
   .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px; cursor: pointer; color: var(--slate); font-size: 13px; font-weight: 600; transition: all 0.18s; margin-bottom: 2px; font-family: 'Manrope', sans-serif; }
   .admin-nav-item:hover { background: var(--primary-pale); color: var(--primary); }
   .admin-nav-item.active { background: var(--primary-pale); color: var(--primary); font-weight: 700; border-left: 3px solid var(--primary); border-radius: 0 9px 9px 0; }
   .admin-nav-icon { width: 26px; height: 26px; border-radius: 7px; background: #f0f3f4; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; font-family: 'Montserrat', sans-serif; color: var(--slate); }
   .admin-nav-item.active .admin-nav-icon { background: var(--primary); color: white; }
-
   .admin-footer { padding: 12px 10px; border-top: 1px solid var(--border); }
   .admin-logout { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 9px; cursor: pointer; color: var(--slate); font-size: 12px; font-weight: 600; transition: all 0.2s; background: none; border: none; width: 100%; font-family: 'Manrope', sans-serif; }
   .admin-logout:hover { background: #fee2e2; color: var(--danger); }
-
   .admin-content { margin-left: 240px; flex: 1; padding: 28px 32px; background: var(--bg); min-height: 100vh; }
-
   .admin-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
   .admin-page-title { font-size: 22px; font-weight: 800; color: var(--navy); font-family: 'Montserrat', sans-serif; }
   .admin-page-sub { font-size: 13px; color: var(--slate); margin-top: 2px; }
-
   .card { background: white; border-radius: 14px; padding: 20px; box-shadow: var(--card-shadow); border: 1px solid var(--border); }
   .card-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 16px; font-family: 'Montserrat', sans-serif; }
-
   .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
   .stat-card { background: white; border-radius: 14px; padding: 18px; box-shadow: var(--card-shadow); border: 1px solid var(--border); border-top: 3px solid var(--primary); }
   .stat-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--slate); font-family: 'Montserrat', sans-serif; margin-bottom: 8px; }
   .stat-value { font-size: 26px; font-weight: 800; font-family: 'Montserrat', sans-serif; color: var(--navy); }
   .stat-sub { font-size: 11px; color: var(--slate); margin-top: 4px; }
-
   .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: 'Manrope', sans-serif; }
   .badge-success { background: #dcfce7; color: #16a34a; }
   .badge-warning { background: #fef9c3; color: #ca8a04; }
   .badge-danger { background: #fee2e2; color: #dc2626; }
   .badge-info { background: var(--primary-pale); color: var(--primary); }
-
   .table { width: 100%; border-collapse: collapse; }
   .table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-light); font-weight: 700; padding: 10px 14px; text-align: left; border-bottom: 1.5px solid var(--border); font-family: 'Montserrat', sans-serif; }
   .table td { padding: 12px 14px; border-bottom: 1px solid #f5f7f8; font-size: 13px; color: var(--navy); vertical-align: middle; font-family: 'Manrope', sans-serif; }
   .table tr:hover td { background: var(--primary-pale); }
   .table tr:last-child td { border-bottom: none; }
-
   .btn { padding: 8px 16px; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 12px; cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
   .btn-primary { background: var(--primary); color: white; }
   .btn-primary:hover { background: var(--primary-dark); }
@@ -88,21 +60,16 @@ const styles = `
   .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
   .btn-outline:hover { background: var(--primary-pale); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
   .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid #dce8eb; border-radius: 9px; font-size: 14px; font-family: 'Manrope', sans-serif; color: var(--navy); background: var(--bg); outline: none; transition: all 0.2s; }
   .form-input:focus { border-color: var(--primary); background: white; }
   .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--slate); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Montserrat', sans-serif; }
-
   .search-bar { display: flex; gap: 10px; margin-bottom: 18px; }
   .search-input { flex: 1; padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-size: 13px; font-family: 'Manrope', sans-serif; outline: none; background: white; transition: border-color 0.2s; }
   .search-input:focus { border-color: var(--primary); }
-
   .empty-state { text-align: center; padding: 40px 20px; color: var(--slate); font-family: 'Manrope', sans-serif; font-size: 13px; }
-
   .tab-bar { display: flex; border-bottom: 1.5px solid var(--border); margin-bottom: 18px; }
   .tab-btn { padding: 10px 16px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13px; background: none; border: none; cursor: pointer; color: var(--slate); border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; transition: all 0.2s; }
   .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-
   .modal-overlay { position: fixed; inset: 0; background: rgba(26,47,62,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
   .modal { background: white; border-radius: 16px; width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
   .modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -110,13 +77,14 @@ const styles = `
   .modal-close { width: 30px; height: 30px; border-radius: 8px; border: none; background: var(--bg); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: var(--slate); }
   .modal-close:hover { background: #fee2e2; color: var(--danger); }
   .modal-body { padding: 22px; }
-
   .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }
   .login-card { background: white; border-radius: 16px; padding: 36px; width: 100%; max-width: 380px; box-shadow: var(--card-shadow); border: 1px solid var(--border); }
   .login-title { font-size: 22px; font-weight: 800; color: var(--navy); font-family: 'Montserrat', sans-serif; margin-bottom: 6px; }
   .login-sub { font-size: 13px; color: var(--slate); margin-bottom: 28px; }
   .form-group { margin-bottom: 16px; }
 `;
+
+const fmt = (n) => `₦${Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
 
 // ── ADMIN LOGIN ──
 function AdminLogin({ onLogin }) {
@@ -157,13 +125,13 @@ function AdminLogin({ onLogin }) {
         <div className="login-sub">Restricted access — authorised personnel only</div>
         <div className="form-group">
           <label className="form-label">Email</label>
-          <input className="form-input" type="email" placeholder="admin@spanhealthcare.com.ng" value={email} onChange={e => setEmail(e.target.value)} />
+          <input className="form-input" type="email" placeholder="admin email" value={email} onChange={e => setEmail(e.target.value)} />
         </div>
         <div className="form-group">
           <label className="form-label">Password</label>
           <input className="form-input" type="password" placeholder="Enter password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
         </div>
-        {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16, fontFamily: "'Manrope',sans-serif" }}>{error}</div>}
+        {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16 }}>{error}</div>}
         <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '11px', fontSize: 14 }} onClick={handleLogin} disabled={loading}>
           {loading ? 'Logging in...' : 'Log In to Admin'}
         </button>
@@ -184,23 +152,37 @@ function OverviewPage() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [
-        { count: userCount },
-        { count: doctorCount },
-        { count: consultCount },
-        { data: wallets },
-        { data: users },
-        { data: txns },
-      ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('doctors').select('*', { count: 'exact', head: true }),
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-        supabase.from('wallets').select('balance, investment_balance'),
-        supabase.from('profiles').select('full_name, created_at').order('created_at', { ascending: false }).limit(5),
-        supabase.from('transactions').select('description, amount, type, created_at').order('created_at', { ascending: false }).limit(5),
-      ]);
+      const { count: userCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
 
-      const totalDeposits = (wallets || []).reduce((sum, w) => sum + Number(w.balance || 0) + Number(w.investment_balance || 0), 0);
+      const { count: doctorCount } = await supabase
+        .from('doctors')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: consultCount } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'completed');
+
+      const { data: wallets } = await supabase
+        .from('wallets')
+        .select('balance, investment_balance');
+
+      const { data: users } = await supabase
+        .from('profiles')
+        .select('full_name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const { data: txns } = await supabase
+        .from('transactions')
+        .select('description, amount, type, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const totalDeposits = (wallets || []).reduce((sum, w) =>
+        sum + Number(w.balance || 0) + Number(w.investment_balance || 0), 0);
 
       setStats({
         users: userCount || 0,
@@ -215,8 +197,6 @@ function OverviewPage() {
     }
     setLoading(false);
   };
-
-  const fmt = (n) => `₦${Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
 
   return (
     <div>
@@ -365,13 +345,8 @@ function DoctorsPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Specialty</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Experience</th>
-                <th>Applied</th>
-                <th>Action</th>
+                <th>Name</th><th>Specialty</th><th>Email</th>
+                <th>Experience</th><th>Applied</th><th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -385,7 +360,6 @@ function DoctorsPage() {
                   </td>
                   <td>{doc.specialty}</td>
                   <td style={{ color: 'var(--slate)' }}>{doc.email}</td>
-                  <td style={{ color: 'var(--slate)' }}>{doc.phone || '—'}</td>
                   <td>{doc.experience_years} yrs</td>
                   <td style={{ color: 'var(--slate)' }}>{doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                   <td>
@@ -395,12 +369,8 @@ function DoctorsPage() {
                         <button className="btn btn-success" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => approve(doc.id)} disabled={acting}>Approve</button>
                         <button className="btn btn-danger" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => reject(doc.id)} disabled={acting}>Reject</button>
                       </>}
-                      {doc.status === 'rejected' && (
-                        <button className="btn btn-success" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => approve(doc.id)} disabled={acting}>Approve</button>
-                      )}
-                      {doc.status === 'approved' && (
-                        <button className="btn btn-danger" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => reject(doc.id)} disabled={acting}>Revoke</button>
-                      )}
+                      {doc.status === 'rejected' && <button className="btn btn-success" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => approve(doc.id)} disabled={acting}>Approve</button>}
+                      {doc.status === 'approved' && <button className="btn btn-danger" style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => reject(doc.id)} disabled={acting}>Revoke</button>}
                     </div>
                   </td>
                 </tr>
@@ -429,28 +399,24 @@ function DoctorsPage() {
                 ].map(f => (
                   <div key={f.label}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 4 }}>{f.label}</div>
-                    <div style={{ fontSize: 13, color: 'var(--navy)', fontFamily: "'Manrope',sans-serif", fontWeight: 600 }}>{f.value}</div>
+                    <div style={{ fontSize: 13, color: 'var(--navy)', fontWeight: 600 }}>{f.value}</div>
                   </div>
                 ))}
               </div>
               {selected.bio && (
                 <div style={{ marginBottom: 18 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 6 }}>Bio</div>
-                  <div style={{ fontSize: 13, color: 'var(--slate)', lineHeight: 1.7, fontFamily: "'Manrope',sans-serif" }}>{selected.bio}</div>
+                  <div style={{ fontSize: 13, color: 'var(--slate)', lineHeight: 1.7 }}>{selected.bio}</div>
                 </div>
               )}
               {selected.status === 'pending' && (
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <button className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }} onClick={() => reject(selected.id)} disabled={acting}>Reject Application</button>
+                  <button className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }} onClick={() => reject(selected.id)} disabled={acting}>Reject</button>
                   <button className="btn btn-success" style={{ flex: 2, justifyContent: 'center' }} onClick={() => approve(selected.id)} disabled={acting}>{acting ? 'Processing...' : 'Approve Doctor'}</button>
                 </div>
               )}
-              {selected.status === 'approved' && (
-                <button className="btn btn-danger" style={{ width: '100%', justifyContent: 'center' }} onClick={() => reject(selected.id)} disabled={acting}>Revoke Approval</button>
-              )}
-              {selected.status === 'rejected' && (
-                <button className="btn btn-success" style={{ width: '100%', justifyContent: 'center' }} onClick={() => approve(selected.id)} disabled={acting}>Approve Doctor</button>
-              )}
+              {selected.status === 'approved' && <button className="btn btn-danger" style={{ width: '100%', justifyContent: 'center' }} onClick={() => reject(selected.id)} disabled={acting}>Revoke Approval</button>}
+              {selected.status === 'rejected' && <button className="btn btn-success" style={{ width: '100%', justifyContent: 'center' }} onClick={() => approve(selected.id)} disabled={acting}>Approve Doctor</button>}
             </div>
           </div>
         </div>
@@ -470,20 +436,35 @@ function UsersPage() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('profiles')
-      .select('*, wallets(balance, investment_balance, account_number, bank_name)')
-      .order('created_at', { ascending: false });
-    setUsers(data || []);
+    try {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      const { data: walletsData, error: walletsError } = await supabase
+        .from('wallets')
+        .select('*');
+
+      if (walletsError) throw walletsError;
+
+      const merged = (profilesData || []).map(profile => ({
+        ...profile,
+        wallet: walletsData?.find(w => w.user_id === profile.id) || null
+      }));
+
+      setUsers(merged);
+    } catch(e) {
+      console.error('fetchUsers error:', e.message);
+    }
     setLoading(false);
   };
-
-  const fmt = (n) => `₦${Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
 
   const filtered = users.filter(u =>
     !search ||
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase()) ||
     u.phone?.includes(search)
   );
 
@@ -498,7 +479,7 @@ function UsersPage() {
 
       <div className="card">
         <div className="search-bar">
-          <input className="search-input" placeholder="Search by name, email or phone..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="search-input" placeholder="Search by name or phone..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
 
         {loading ? <div className="empty-state">Loading...</div>
@@ -507,25 +488,18 @@ function UsersPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Available Balance</th>
-                <th>Investment</th>
-                <th>Total</th>
-                <th>Joined</th>
-                <th>Action</th>
+                <th>Name</th><th>Phone</th>
+                <th>Available</th><th>Investment</th><th>Total</th>
+                <th>Joined</th><th>Action</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(u => {
-                const wallet = Array.isArray(u.wallets) ? u.wallets[0] : u.wallets;
-                const available = Number(wallet?.balance || 0);
-                const investment = Number(wallet?.investment_balance || 0);
+                const available = Number(u.wallet?.balance || 0);
+                const investment = Number(u.wallet?.investment_balance || 0);
                 return (
                   <tr key={u.id}>
                     <td style={{ fontWeight: 700 }}>{u.full_name || '—'}</td>
-                    <td style={{ color: 'var(--slate)' }}>{u.email || '—'}</td>
                     <td style={{ color: 'var(--slate)' }}>{u.phone || '—'}</td>
                     <td style={{ color: 'var(--primary)', fontWeight: 600 }}>{fmt(available)}</td>
                     <td style={{ color: '#7c3aed', fontWeight: 600 }}>{fmt(investment)}</td>
@@ -550,45 +524,35 @@ function UsersPage() {
               <button className="modal-close" onClick={() => setSelected(null)}>✕</button>
             </div>
             <div className="modal-body">
-              {(() => {
-                const wallet = Array.isArray(selected.wallets) ? selected.wallets[0] : selected.wallets;
-                const available = Number(wallet?.balance || 0);
-                const investment = Number(wallet?.investment_balance || 0);
-                return (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18 }}>
-                      {[
-                        { label: 'Full Name', value: selected.full_name || '—' },
-                        { label: 'Email', value: selected.email || '—' },
-                        { label: 'Phone', value: selected.phone || '—' },
-                        { label: 'Sex', value: selected.sex || '—' },
-                        { label: 'Blood Group', value: selected.blood_group || '—' },
-                        { label: 'Genotype', value: selected.genotype || '—' },
-                        { label: 'Date of Birth', value: selected.date_of_birth || '—' },
-                        { label: 'Joined', value: selected.created_at ? new Date(selected.created_at).toLocaleDateString('en-NG', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
-                      ].map(f => (
-                        <div key={f.label}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 4 }}>{f.label}</div>
-                          <div style={{ fontSize: 13, color: 'var(--navy)', fontFamily: "'Manrope',sans-serif", fontWeight: 600 }}>{f.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ background: 'var(--primary-pale)', borderRadius: 12, padding: 16, marginBottom: 18 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 12 }}>Wallet</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                        <div><div style={{ fontSize: 10, color: 'var(--slate)', marginBottom: 3 }}>Available</div><div style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary)' }}>{fmt(available)}</div></div>
-                        <div><div style={{ fontSize: 10, color: 'var(--slate)', marginBottom: 3 }}>Investment</div><div style={{ fontSize: 16, fontWeight: 700, color: '#7c3aed' }}>{fmt(investment)}</div></div>
-                        <div><div style={{ fontSize: 10, color: 'var(--slate)', marginBottom: 3 }}>Total</div><div style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>{fmt(available + investment)}</div></div>
-                      </div>
-                      {wallet?.account_number && (
-                        <div style={{ marginTop: 12, fontSize: 12, color: 'var(--slate)' }}>
-                          Account: <strong>{wallet.account_number}</strong> · {wallet.bank_name || 'Span Bank'}
-                        </div>
-                      )}
-                    </div>
-                  </>
-                );
-              })()}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18 }}>
+                {[
+                  { label: 'Full Name', value: selected.full_name || '—' },
+                  { label: 'Phone', value: selected.phone || '—' },
+                  { label: 'Sex', value: selected.sex || '—' },
+                  { label: 'Blood Group', value: selected.blood_group || '—' },
+                  { label: 'Genotype', value: selected.genotype || '—' },
+                  { label: 'Date of Birth', value: selected.date_of_birth || '—' },
+                  { label: 'Joined', value: selected.created_at ? new Date(selected.created_at).toLocaleDateString('en-NG', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
+                ].map(f => (
+                  <div key={f.label}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 4 }}>{f.label}</div>
+                    <div style={{ fontSize: 13, color: 'var(--navy)', fontWeight: 600 }}>{f.value}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: 'var(--primary-pale)', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 12 }}>Wallet</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                  <div><div style={{ fontSize: 10, color: 'var(--slate)', marginBottom: 3 }}>Available</div><div style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary)' }}>{fmt(Number(selected.wallet?.balance || 0))}</div></div>
+                  <div><div style={{ fontSize: 10, color: 'var(--slate)', marginBottom: 3 }}>Investment</div><div style={{ fontSize: 16, fontWeight: 700, color: '#7c3aed' }}>{fmt(Number(selected.wallet?.investment_balance || 0))}</div></div>
+                  <div><div style={{ fontSize: 10, color: 'var(--slate)', marginBottom: 3 }}>Total</div><div style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>{fmt(Number(selected.wallet?.balance || 0) + Number(selected.wallet?.investment_balance || 0))}</div></div>
+                </div>
+                {selected.wallet?.account_number && (
+                  <div style={{ marginTop: 12, fontSize: 12, color: 'var(--slate)' }}>
+                    Account: <strong>{selected.wallet.account_number}</strong> · {selected.wallet.bank_name || 'Span Bank'}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -608,23 +572,23 @@ function TransactionsPage() {
 
   const fetchTransactions = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('transactions')
-      .select('*, profiles(full_name)')
-      .order('created_at', { ascending: false })
-      .limit(200);
-    setTransactions(data || []);
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      setTransactions(data || []);
+    } catch(e) {
+      console.error('Transactions error:', e.message);
+    }
     setLoading(false);
   };
 
-  const fmt = (n) => `₦${Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
-
   const filtered = transactions
     .filter(t => typeFilter === 'all' || t.type === typeFilter)
-    .filter(t => !search ||
-      t.description?.toLowerCase().includes(search.toLowerCase()) ||
-      t.profiles?.full_name?.toLowerCase().includes(search.toLowerCase())
-    );
+    .filter(t => !search || t.description?.toLowerCase().includes(search.toLowerCase()));
 
   const totalCredits = filtered.filter(t => t.type === 'credit').reduce((s, t) => s + Number(t.amount), 0);
   const totalDebits = filtered.filter(t => t.type === 'debit').reduce((s, t) => s + Number(t.amount), 0);
@@ -654,7 +618,7 @@ function TransactionsPage() {
 
       <div className="card">
         <div className="search-bar">
-          <input className="search-input" placeholder="Search by description or user..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="search-input" placeholder="Search by description..." value={search} onChange={e => setSearch(e.target.value)} />
           <div style={{ display: 'flex', gap: 6 }}>
             {['all', 'credit', 'debit'].map(t => (
               <button key={t} className="btn" style={{ padding: '7px 12px', fontSize: 11, background: typeFilter === t ? 'var(--primary)' : 'white', color: typeFilter === t ? 'white' : 'var(--slate)', border: '1.5px solid var(--border)' }} onClick={() => setTypeFilter(t)}>
@@ -669,26 +633,17 @@ function TransactionsPage() {
         : (
           <table className="table">
             <thead>
-              <tr>
-                <th>User</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Type</th>
-                <th>Date</th>
-                <th>Reference</th>
-              </tr>
+              <tr><th>Description</th><th>Amount</th><th>Type</th><th>Date</th></tr>
             </thead>
             <tbody>
               {filtered.map(t => (
                 <tr key={t.id}>
-                  <td style={{ fontWeight: 600 }}>{t.profiles?.full_name || '—'}</td>
                   <td>{t.description || 'Transaction'}</td>
                   <td style={{ fontWeight: 700, color: t.type === 'credit' ? 'var(--success)' : 'var(--danger)' }}>
                     {t.type === 'credit' ? '+' : '-'}{fmt(t.amount)}
                   </td>
                   <td><span className={`badge ${t.type === 'credit' ? 'badge-success' : 'badge-info'}`}>{t.type}</span></td>
                   <td style={{ color: 'var(--slate)' }}>{t.created_at ? new Date(t.created_at).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
-                  <td style={{ color: 'var(--slate)', fontSize: 11 }}>{t.reference || '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -745,7 +700,7 @@ function AppointmentsPage() {
         </div>
 
         <div className="search-bar">
-          <input className="search-input" placeholder="Search by patient or doctor name..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="search-input" placeholder="Search by patient or doctor..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
 
         {loading ? <div className="empty-state">Loading...</div>
@@ -753,13 +708,7 @@ function AppointmentsPage() {
         : (
           <table className="table">
             <thead>
-              <tr>
-                <th>Patient</th>
-                <th>Doctor</th>
-                <th>Type</th>
-                <th>Date</th>
-                <th>Status</th>
-              </tr>
+              <tr><th>Patient</th><th>Doctor</th><th>Type</th><th>Date</th><th>Status</th></tr>
             </thead>
             <tbody>
               {filtered.map(a => (
@@ -822,8 +771,18 @@ export default function AdminApp() {
     { id: 'appointments', label: 'Appointments', short: 'AP' },
   ];
 
-  if (checking) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Manrope', color: '#5a7a8a' }}>Loading...</div>;
-  if (!authed) return <><style>{styles}</style><AdminLogin onLogin={(user) => { setAuthed(true); setAdminUser(user); }} /></>;
+  if (checking) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Manrope', color: '#5a7a8a' }}>
+      Loading...
+    </div>
+  );
+
+  if (!authed) return (
+    <>
+      <style>{styles}</style>
+      <AdminLogin onLogin={(user) => { setAuthed(true); setAdminUser(user); }} />
+    </>
+  );
 
   return (
     <>
@@ -846,7 +805,7 @@ export default function AdminApp() {
             ))}
           </div>
           <div className="admin-footer">
-            <div style={{ fontSize: 12, color: 'var(--slate)', padding: '4px 10px', marginBottom: 6, fontFamily: "'Manrope',sans-serif" }}>
+            <div style={{ fontSize: 12, color: 'var(--slate)', padding: '4px 10px', marginBottom: 6 }}>
               {adminUser?.email}
             </div>
             <button className="admin-logout" onClick={handleLogout}>
