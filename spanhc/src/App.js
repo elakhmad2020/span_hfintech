@@ -11,10 +11,10 @@ const styles = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --primary: #3D9CB0;
+    --primary: #459DAf;
     --primary-light: #56b4c8;
     --primary-dark: #2d8a9e;
-    --primary-pale: #e8f6f9;
+    --primary-pale: #eef7f9;
     --secondary: #98B7B9;
     --secondary-light: #b0cccf;
     --secondary-pale: #f0f7f8;
@@ -28,8 +28,12 @@ const styles = `
     --danger: #e05252;
     --success: #2fb88a;
     --warning: #e8a444;
-    --card-shadow: 0 2px 20px rgba(61,156,176,0.08);
-    --card-shadow-hover: 0 8px 32px rgba(61,156,176,0.16);
+    --card-shadow: 0 1px 12px rgba(69,157,175,0.07), 0 1px 3px rgba(0,0,0,0.04);
+    --card-shadow-hover: 0 4px 24px rgba(69,157,175,0.13);
+    --sidebar-bg: #ffffff;
+--sidebar-border: #e8eef0;
+--bg: #f5f7f8;
+--bg2: #eef1f3;
   }
 
   body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--navy); }
@@ -43,6 +47,9 @@ const styles = `
     .auth-left { display: none !important; }
     .auth-right { padding: 32px 24px !important; }
   }
+    @media (max-width: 900px) {
+  .mobile-back-btn { display: flex !important; }
+}
   .auth-left {
     background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 40%, var(--primary-dark) 100%);
     display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
@@ -108,36 +115,36 @@ const styles = `
   .otp-input:focus { border-color: var(--primary); }
 
   .main-layout { display: flex; min-height: 100vh; }
-  .sidebar { width: 248px; min-height: 100vh; background: var(--navy); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
-  .sidebar-logo { padding: 22px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.12); }
-  .sidebar-logo-icon { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: white; font-family: 'Montserrat', sans-serif; letter-spacing: 0.3px; }
-  .sidebar-logo-img { height: 34px; width: auto; object-fit: contain; }
-  .sidebar-logo-name { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: white; line-height: 1.2; }
-  .sidebar-logo-tag { font-size: 9px; color: var(--secondary); font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; }
-  .logout-btn { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.45); font-size: 12px; font-weight: 600; transition: all 0.2s; background: none; border: none; width: 100%; font-family: 'Manrope', sans-serif; margin-top: 6px; }
-  .logout-btn:hover { background: rgba(224,82,82,0.15); color: #e05252; }
-  .sidebar-nav { flex: 1; padding: 14px 10px; overflow-y: auto; }
-  .sidebar-section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.25); padding: 8px 8px 4px; margin-top: 14px; font-family: 'Montserrat', sans-serif; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 11px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500; transition: all 0.2s; margin-bottom: 2px; font-family: 'Manrope', sans-serif; }
-  .nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
-  .nav-item.active { background: var(--primary); color: white; }
-  .nav-icon { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; font-family: 'Montserrat', sans-serif; }
-  .nav-item.active .nav-icon { background: rgba(255,255,255,0.2); }
-  .nav-badge { margin-left: auto; background: var(--primary-light); color: white; font-size: 9px; font-weight: 700; border-radius: 20px; padding: 2px 7px; }
-  .sidebar-footer { padding: 14px 10px; border-top: 1px solid rgba(255,255,255,0.07); }
-  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 9px; cursor: pointer; transition: all 0.2s; }
-  .sidebar-user:hover { background: rgba(255,255,255,0.07); }
-  .sidebar-avatar { width: 34px; height: 34px; border-radius: 9px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 12px; flex-shrink: 0; font-family: 'Montserrat', sans-serif; overflow: hidden; }
-  .sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .sidebar-user-name { font-size: 13px; font-weight: 600; color: white; font-family: 'Manrope', sans-serif; }
-  .sidebar-user-role { font-size: 10px; color: rgba(255,255,255,0.4); font-family: 'Manrope', sans-serif; }
+  .sidebar { width: 240px; min-height: 100vh; background: #ffffff; border-right: 1px solid #e8eef0; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
+.sidebar-logo { padding: 20px 16px; border-bottom: 1px solid #e8eef0; display: flex; align-items: center; gap: 10px; }
+.sidebar-logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: white; font-family: 'Montserrat', sans-serif; }
+.sidebar-logo-img { height: 32px; width: auto; object-fit: contain; }
+.sidebar-logo-name { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: var(--navy); line-height: 1.2; }
+.sidebar-logo-tag { font-size: 9px; color: var(--slate); font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; }
+.sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+.sidebar-section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--slate-light); padding: 8px 8px 4px; margin-top: 12px; font-family: 'Montserrat', sans-serif; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px; cursor: pointer; color: var(--slate); font-size: 13px; font-weight: 600; transition: all 0.18s; margin-bottom: 2px; font-family: 'Manrope', sans-serif; }
+.nav-item:hover { background: var(--primary-pale); color: var(--primary); }
+.nav-item.active { background: var(--primary-pale); color: var(--primary); font-weight: 700; border-left: 3px solid var(--primary); }
+.nav-icon { width: 26px; height: 26px; border-radius: 7px; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; font-family: 'Montserrat', sans-serif; color: var(--slate); }
+.nav-item.active .nav-icon { background: var(--primary); color: white; }
+.nav-item:hover .nav-icon { background: var(--primary-pale2); color: var(--primary); }
+.sidebar-footer { padding: 12px 10px; border-top: 1px solid #e8eef0; }
+.sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 9px; cursor: pointer; transition: all 0.2s; }
+.sidebar-user:hover { background: var(--bg2); }
+.sidebar-avatar { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 12px; flex-shrink: 0; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+.sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--navy); font-family: 'Manrope', sans-serif; }
+.sidebar-user-role { font-size: 10px; color: var(--slate); font-family: 'Manrope', sans-serif; }
+.logout-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 9px; cursor: pointer; color: var(--slate); font-size: 12px; font-weight: 600; transition: all 0.2s; background: none; border: none; width: 100%; font-family: 'Manrope', sans-serif; margin-top: 4px; }
+.logout-btn:hover { background: #fee2e2; color: var(--danger); }
 
-  .main-content { margin-left: 248px; flex: 1; padding: 28px 32px; background: var(--bg); min-height: 100vh; }
+  .main-content { margin-left: 240px; flex: 1; padding: 26px 30px; background: var(--bg); min-height: 100vh; }
   .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
   .page-title { font-size: 24px; font-weight: 800; color: var(--navy); font-family: 'Montserrat', sans-serif; }
   .page-sub { font-size: 13px; color: var(--slate); margin-top: 2px; font-family: 'Manrope', sans-serif; }
 
-  .card { background: white; border-radius: 16px; padding: 22px; box-shadow: var(--card-shadow); transition: box-shadow 0.2s; }
+  .card { background: white; border-radius: 14px; padding: 20px; box-shadow: var(--card-shadow); transition: box-shadow 0.2s; border: 1px solid #eef2f4;}
   .card:hover { box-shadow: var(--card-shadow-hover); }
   .card-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; font-family: 'Montserrat', sans-serif; }
   .card-sub { font-size: 12px; color: var(--slate); font-family: 'Manrope', sans-serif; }
@@ -151,6 +158,20 @@ const styles = `
   .stat-change.up { color: var(--success); }
   .stat-change.down { color: var(--danger); }
 
+.balance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.balance-card { background: white; border-radius: 16px; padding: 22px; box-shadow: var(--card-shadow); border: 1px solid #eef2f4; position: relative; overflow: hidden; }
+.balance-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0; }
+.balance-card.available::before { background: var(--primary); }
+.balance-card.investment::before { background:rgb(190, 92, 246); }
+.balance-card.total::before { background: var(--success); }
+.balance-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--slate); font-family: 'Montserrat', sans-serif; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.balance-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.balance-amount { font-size: 24px; font-weight: 800; font-family: 'Montserrat', sans-serif; color: var(--navy); }
+.balance-sub { font-size: 11px; color: var(--slate); margin-top: 5px; font-family: 'Manrope', sans-serif; line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .balance-grid { grid-template-columns: 1fr; gap: 10px; }
+}
   .wallet-card { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--primary-dark) 100%); border-radius: 20px; padding: 28px; color: white; position: relative; overflow: hidden; }
   .wallet-card::before { content: ''; position: absolute; top: -50px; right: -30px; width: 180px; height: 180px; border-radius: 50%; background: rgba(61,156,176,0.15); }
   .wallet-card::after { content: ''; position: absolute; bottom: -40px; left: 20px; width: 120px; height: 120px; border-radius: 50%; background: rgba(152,183,185,0.1); }
@@ -351,6 +372,7 @@ const styles = `
   @media (max-width: 1100px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .dashboard-grid { grid-template-columns: 1fr; }
+    .balance-grid { grid-template-columns: 1fr; gap: 10px; }
   }
 
  @media (max-width: 900px) {
@@ -464,6 +486,76 @@ const CHAT_MESSAGES = [
   { id: 6, text: "Do not worry, we will get to the bottom of this. Your results from last week look great.", sent: false, time: "10:32 AM" },
 ];
 
+function ForgotPasswordModal({ onClose }) {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSend = async () => {
+    if (!email) { setError('Please enter your email address'); return; }
+    setLoading(true);
+    setError('');
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    setLoading(false);
+    if (err) { setError(err.message); return; }
+    setSent(true);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Reset Password</div>
+          <button className="modal-close" onClick={onClose}>X</button>
+        </div>
+        <div className="modal-body">
+          {sent ? (
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div style={{ width: 60, height: 60, borderRadius: 16, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>✓</div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 8 }}>Email Sent!</div>
+              <div style={{ fontSize: 13, color: 'var(--slate)', lineHeight: 1.7, fontFamily: "'Manrope',sans-serif" }}>
+                We sent a reset link to <strong>{email}</strong>. Check your inbox and click the link to reset your password.
+              </div>
+              <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={onClose}>Done</button>
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 13, color: 'var(--slate)', marginBottom: 20, lineHeight: 1.7, fontFamily: "'Manrope',sans-serif" }}>
+                Enter the email address on your account and we will send you a password reset link.
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  placeholder="you@email.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSend()}
+                />
+              </div>
+              {error && (
+                <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16, fontFamily: "'Manrope',sans-serif" }}>
+                  {error}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button className="btn btn-outline" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
+                <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleSend} disabled={loading}>
+                  {loading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AuthScreen({ onLogin, onDoctorLogin }) {
   const [mode, setMode] = useState("login");
   const [userType, setUserType] = useState("patient");
@@ -471,6 +563,7 @@ function AuthScreen({ onLogin, onDoctorLogin }) {
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
   const [form, setForm] = useState({
     email: "", phone: "", name: "", password: "", confirmPassword: "",
     dob: "", sex: "Male", specialty: "", experience_years: "", bio: ""
@@ -601,6 +694,7 @@ onDoctorLogin(data.user, doctorData);
 
   return (
     <div className="auth-screen">
+      {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
       <div className="auth-left">
         <div className="auth-logo">
           <img
@@ -755,8 +849,13 @@ onDoctorLogin(data.user, doctorData);
                 <div className="form-group"><label className="form-label">Email</label><input className="form-input" placeholder="you@email.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
                 <div className="form-group"><label className="form-label">Password</label><input className="form-input" type="password" placeholder="Enter password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></div>
                 <p style={{ textAlign: 'right', marginBottom: 18, fontSize: 12, fontFamily: "'Manrope',sans-serif" }}>
-                  <span style={{ color: 'var(--primary)', fontWeight: 700, cursor: 'pointer' }}>Forgot password?</span>
-                </p>
+  <span
+    style={{ color: 'var(--primary)', fontWeight: 700, cursor: 'pointer' }}
+    onClick={() => setShowForgot(true)}
+  >
+    Forgot password?
+  </span>
+</p>
               </>}
 
               {error && (
@@ -930,77 +1029,56 @@ function Dashboard({ onNav, userName, userId }) {
           + Book Appointment
         </button>
       </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-tag" style={{ background: '#e8f6f9', color: '#2d8a9e' }}>WALLET</span>
-          <div className="stat-value" style={{ marginTop: 6 }}>
-            {loading ? '—' : fmt(wallet?.balance)}
-          </div>
-          <div className="stat-label">Wallet Balance</div>
-          <div className="stat-change up">Available for health expenses</div>
-        </div>
-
-        <div className="stat-card">
-          <span className="stat-tag" style={{ background: '#fee2e2', color: '#991b1b' }}>SPENT</span>
-          <div className="stat-value" style={{ marginTop: 6 }}>
-            {loading ? '—' : fmt(monthlySpent)}
-          </div>
-          <div className="stat-label">Spent This Month</div>
-          <div className="stat-change down">Health expenses this month</div>
-        </div>
-
-        <div className="stat-card">
-          <span className="stat-tag" style={{ background: '#eff6ff', color: '#1d4ed8' }}>FAMILY</span>
-          <div className="stat-value" style={{ marginTop: 6 }}>
-            {loading ? '—' : dependents.length}
-          </div>
-          <div className="stat-label">Dependents Covered</div>
-          <div className="stat-change up">
-            {dependents.length > 0 ? 'All active on your plan' : 'No dependents added yet'}
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <span className="stat-tag" style={{ background: '#fef9c3', color: '#854d0e' }}>APPT</span>
-          <div className="stat-value" style={{ marginTop: 6 }}>
-            {loading ? '—' : appointments.length}
-          </div>
-          <div className="stat-label">Upcoming Appointments</div>
-          <div className="stat-change up">
-            {appointments.length > 0
-              ? `Next: ${formatApptDate(appointments[0]?.date).date}`
-              : 'No upcoming appointments'}
-          </div>
-        </div>
-      </div>
-
       <div className="dashboard-grid">
         <div>
-          <div className="wallet-card" style={{ marginBottom: 20 }}>
-            <div className="wallet-label">Health Savings Wallet</div>
-            <div className="wallet-amount">
-              {loading ? 'Loading...' : fmt(wallet?.balance)}
-            </div>
-            <div className="wallet-id">
-              {wallet?.account_number
-                ? `${wallet.account_number} · ${wallet.bank_name || 'Span Bank'}`
-                : 'Setting up your account...'}
-            </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-              <div style={{ padding: '5px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: 20, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontFamily: "'Manrope',sans-serif" }}>
-                {dependents.length} Dependent{dependents.length !== 1 ? 's' : ''}
-              </div>
-              <div style={{ padding: '5px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: 20, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontFamily: "'Manrope',sans-serif" }}>
-                Active Member
-              </div>
-            </div>
-            <div className="wallet-actions">
-              <button className="wallet-btn wallet-btn-primary" onClick={() => onNav('wallet')}>Fund Wallet</button>
-              <button className="wallet-btn wallet-btn-outline" onClick={() => onNav('wallet')}>Transfer</button>
-              <button className="wallet-btn wallet-btn-outline" onClick={() => onNav('transactions')}>Statement</button>
-            </div>
-          </div>
+        <div className="wallet-card" style={{ marginBottom: 20 }}>
+  <div className="wallet-label">Health Savings Wallet</div>
+
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16, marginBottom: 8, position: 'relative', zIndex: 1 }}>
+    <div>
+      <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'Montserrat',sans-serif", marginBottom: 4 }}>Available</div>
+      <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "'Montserrat',sans-serif" }}>
+        {loading ? '—' : fmt(wallet?.balance || 0)}
+      </div>
+      <div style={{ fontSize: 10, opacity: 0.5, marginTop: 2, fontFamily: "'Manrope',sans-serif" }}>45% · health wallet</div>
+    </div>
+    <div>
+      <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'Montserrat',sans-serif", marginBottom: 4 }}>Investment</div>
+      <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: '#c4b5fd' }}>
+        {loading ? '—' : fmt(wallet?.investment_balance || 0)}
+      </div>
+      <div style={{ fontSize: 10, opacity: 0.5, marginTop: 2, fontFamily: "'Manrope',sans-serif" }}>45% · Konooz Fund</div>
+    </div>
+    <div>
+      <div style={{ fontSize: 10, opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'Montserrat',sans-serif", marginBottom: 4 }}>Total</div>
+      <div style={{ fontSize: 26, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: '#6ee7b7' }}>
+        {loading ? '—' : fmt((wallet?.balance || 0) + (wallet?.investment_balance || 0))}
+      </div>
+      <div style={{ fontSize: 10, opacity: 0.5, marginTop: 2, fontFamily: "'Manrope',sans-serif" }}>Available + Investment</div>
+    </div>
+  </div>
+
+  <div className="wallet-id">
+    {wallet?.account_number
+      ? `${wallet.account_number} · ${wallet.bank_name || 'Span Bank'}`
+      : 'Setting up your account...'}
+  </div>
+
+  <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+    <div style={{ padding: '5px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: 20, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontFamily: "'Manrope',sans-serif" }}>
+      {dependents.length} Dependent{dependents.length !== 1 ? 's' : ''}
+    </div>
+    <div style={{ padding: '5px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: 20, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontFamily: "'Manrope',sans-serif" }}>
+      Active Member
+    </div>
+  </div>
+
+  <div className="wallet-actions">
+    <button className="wallet-btn wallet-btn-primary" onClick={() => onNav('wallet')}>Fund Wallet</button>
+    <button className="wallet-btn wallet-btn-outline" onClick={() => onNav('wallet')}>Transfer</button>
+    <button className="wallet-btn wallet-btn-outline" onClick={() => onNav('transactions')}>Statement</button>
+  </div>
+</div>
 
           <div className="card" style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -3268,6 +3346,7 @@ function MessagesPage({ userId, userName }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const [sending, setSending] = useState(false);
   const [msgMenuId, setMsgMenuId] = useState(null);
   const deleteMessage = async (msgId) => {
@@ -3416,7 +3495,7 @@ function MessagesPage({ userId, userName }) {
 
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '280px 1fr', gap: 20, overflow: 'hidden' }}>
         {/* Doctors list */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', ...(showMobileChat ? { display: 'none' } : {}) }}>
           <div style={{ padding: '14px 18px', borderBottom: '1px solid #eef2f5', fontWeight: 700, fontSize: 13, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>
             Doctors
           </div>
@@ -3429,7 +3508,7 @@ function MessagesPage({ userId, userName }) {
               doctors.map(doc => (
                 <div
                   key={doc.id}
-                  onClick={() => setSelectedDoctor(doc)}
+                  onClick={() => { setSelectedDoctor(doc); setShowMobileChat(true); }}
                   style={{ padding: '12px 18px', borderBottom: '1px solid #f8fafc', cursor: 'pointer', background: selectedDoctor?.id === doc.id ? 'var(--primary-pale)' : 'white', borderLeft: selectedDoctor?.id === doc.id ? '3px solid var(--primary)' : '3px solid transparent', display: 'flex', alignItems: 'center', gap: 12, transition: 'all 0.2s' }}
                 >
                   <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: 'white', fontFamily: "'Montserrat',sans-serif", flexShrink: 0, overflow: 'hidden' }}>
@@ -3447,7 +3526,7 @@ function MessagesPage({ userId, userName }) {
         </div>
 
         {/* Chat area */}
-        <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', gridColumn: showMobileChat ? '1 / -1' : 'auto' }}>
           {!selectedDoctor ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--slate)', fontFamily: "'Manrope',sans-serif", fontSize: 13 }}>
               Select a doctor to start messaging
@@ -3456,6 +3535,13 @@ function MessagesPage({ userId, userName }) {
             <>
               {/* Chat header */}
               <div style={{ padding: '14px 20px', borderBottom: '1px solid #eef2f5', display: 'flex', alignItems: 'center', gap: 12 }}>
+  <button
+    onClick={() => { setShowMobileChat(false); setSelectedDoctor(null); }}
+    style={{ display: 'none', width: 32, height: 32, borderRadius: 8, border: '1.5px solid #dce8eb', background: 'white', cursor: 'pointer', fontSize: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+    className="mobile-back-btn"
+  >
+    ←
+  </button>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: 'white', fontFamily: "'Montserrat',sans-serif", overflow: 'hidden' }}>
                   {selectedDoctor.avatar_url ? <img src={selectedDoctor.avatar_url} alt={selectedDoctor.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : getInitials(selectedDoctor.full_name)}
                 </div>
@@ -5032,6 +5118,96 @@ function Settings() {
   );
 }
 
+function PasswordResetModal({ onClose }) {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+
+  const handleReset = async () => {
+    if (!password) { setError('Please enter a new password'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match'); return; }
+    setLoading(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Reset session expired. Please request a new reset link.');
+      const { error: err } = await supabase.auth.updateUser({ password });
+      if (err) throw err;
+      setDone(true);
+      setTimeout(() => {
+        onClose();
+        window.location.href = '/';
+      }, 2000);
+    } catch(e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Set New Password</div>
+        </div>
+        <div className="modal-body">
+          {done ? (
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div style={{ width: 60, height: 60, borderRadius: 16, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>✓</div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 8 }}>Password Updated!</div>
+              <div style={{ fontSize: 13, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>
+                Your password has been changed successfully. Redirecting you now...
+              </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 13, color: 'var(--slate)', marginBottom: 20, lineHeight: 1.7, fontFamily: "'Manrope',sans-serif" }}>
+                Choose a strong new password for your account.
+              </div>
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input
+                  className="form-input"
+                  type="password"
+                  placeholder="Enter new password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Confirm New Password</label>
+                <input
+                  className="form-input"
+                  type="password"
+                  placeholder="Repeat new password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleReset()}
+                />
+              </div>
+              {error && (
+                <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16, fontFamily: "'Manrope',sans-serif" }}>
+                  {error}
+                </div>
+              )}
+              <button
+                className="btn btn-primary"
+                onClick={handleReset}
+                disabled={loading}
+              >
+                {loading ? 'Updating...' : 'Update Password'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [authed, setAuthed] = useState(false);
   const [page, setPage] = useState("dashboard");
@@ -5041,8 +5217,16 @@ export default function App() {
   const [userId, setUserId] = useState(null);
   const [doctorUser, setDoctorUser] = useState(null);
   const [doctorProfile, setDoctorProfile] = useState(null);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   useEffect(() => {
+    // Check if this is a password recovery redirect
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      setShowPasswordReset(true);
+      return; // don't auto-login, show reset modal first
+    }
+  
     getCurrentUser().then(user => {
       if (user) {
         setAuthed(true);
@@ -5052,6 +5236,25 @@ export default function App() {
         }).catch(() => {});
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthed(false);
+        setShowPasswordReset(true);
+      }
+      if (event === 'SIGNED_IN' && !showPasswordReset) {
+        if (session?.user) {
+          setAuthed(true);
+          setUserId(session.user.id);
+          getProfile(session.user.id).then(profile => {
+            if (profile) setUserName(profile.full_name ? profile.full_name.split(' ')[0] : 'User');
+          }).catch(() => {});
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogin = (user) => {
@@ -5089,6 +5292,20 @@ export default function App() {
     claims: <ClaimsPage />,
     settings: <Settings />,
   };
+
+  if (!authed) return (
+    <>
+      <style>{styles}</style>
+      {showPasswordReset && (
+  <PasswordResetModal onClose={() => {
+    setShowPasswordReset(false);
+    // Clear the hash from URL
+    window.history.replaceState(null, '', window.location.pathname);
+  }} />
+)}
+      <AuthScreen onLogin={handleLogin} onDoctorLogin={handleDoctorLogin} />
+    </>
+  );
 
   if (!authed) return <><style>{styles}</style><AuthScreen onLogin={handleLogin} onDoctorLogin={handleDoctorLogin} /></>;
 
