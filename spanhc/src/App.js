@@ -3847,8 +3847,14 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
       const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       setAgoraClient(client);
 
-      const channel = 'testchannel';
-const token = '007eJxTYHjNL145ucAoNS0iPUHjo/Zm7Wrr3IxrHfK+citKPyXksikwmKZamhslmiYlGphYmBgbWFoYpJkZp6QYJ5qaWFpYGCQtXbUosyGQkaF8+SxmRgYIBPG5GUpSi0uSMxLz8lJzGBgAUu0f+g==';
+      const channel = `consult_${userId}_${doctor.id}_${Date.now()}`;
+
+      const tokenResponse = await fetch(
+        `/api/agora-token?channel=${channel}&uid=${userId}`
+      );
+      const tokenData = await tokenResponse.json();
+      if (!tokenData.token) throw new Error('Failed to get call token');
+      const token = tokenData.token;
 
 // Save active call to Supabase so doctor can join
 await supabase.from('appointments').insert({
