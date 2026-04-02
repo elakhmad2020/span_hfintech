@@ -4,6 +4,7 @@ import { registerUser, loginUser, logoutUser, getCurrentUser, getProfile, getWal
 import { supabase } from './supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { RtcTokenBuilder, RtcRole } from 'agora-token';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
@@ -3849,10 +3850,14 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
 
       const channel = `consult_${userId}_${doctor.id}_${Date.now()}`;
 
-      const tokenResponse = await fetch(`/api/agora-token?channel=${channel}&uid=0`);
-      const tokenData = await tokenResponse.json();
-      if (!tokenData.token) throw new Error('Failed to get call token');
-      const token = tokenData.token;
+      const APP_ID = '5e972a5ba048430980f63dd3a549880b';
+const APP_CERTIFICATE = '99fb9566a82e4827937ab62d1297781d';
+const uid = 0;
+const expireTime = Math.floor(Date.now() / 1000) + 3600 * 24;
+const token = RtcTokenBuilder.buildTokenWithUid(
+  APP_ID, APP_CERTIFICATE, channel, uid,
+  RtcRole.PUBLISHER, expireTime, expireTime
+);
 
 // Save active call to Supabase so doctor can join
 await supabase.from('appointments').insert({
