@@ -4,7 +4,7 @@ import { registerUser, loginUser, logoutUser, getCurrentUser, getProfile, getWal
 import { supabase } from './supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { RtcTokenBuilder, RtcRole } from 'agora-token';
+
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
@@ -369,6 +369,20 @@ const styles = `
   .settings-action:hover { border-color: var(--primary); color: var(--primary); }
   .settings-action-danger { border-color: #fee2e2; color: var(--danger); }
   .settings-action-danger:hover { background: #fee2e2; }
+
+  .notif-bell { position: relative; cursor: pointer; width: 36px; height: 36px; border-radius: 9px; background: var(--bg2); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+.notif-bell:hover { background: var(--primary-pale); border-color: var(--primary); }
+.notif-badge { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: white; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; }
+.notif-dropdown { position: absolute; top: 44px; right: 0; width: 320px; background: white; border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid var(--border); z-index: 500; overflow: hidden; }
+.notif-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.notif-title { font-size: 13px; font-weight: 700; color: var(--navy); font-family: 'Montserrat', sans-serif; }
+.notif-item { padding: 12px 16px; border-bottom: 1px solid #f5f7f8; cursor: pointer; transition: background 0.2s; }
+.notif-item:hover { background: var(--bg); }
+.notif-item.unread { background: var(--primary-pale); border-left: 3px solid var(--primary); }
+.notif-item-title { font-size: 13px; font-weight: 700; color: var(--navy); font-family: 'Montserrat', sans-serif; margin-bottom: 2px; }
+.notif-item-msg { font-size: 12px; color: var(--slate); font-family: 'Manrope', sans-serif; line-height: 1.5; }
+.notif-item-time { font-size: 10px; color: var(--slate-light); margin-top: 4px; font-family: 'Manrope', sans-serif; }
+.notif-empty { padding: 32px 16px; text-align: center; color: var(--slate); font-size: 13px; font-family: 'Manrope', sans-serif; }
 
   @media (max-width: 1100px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -876,6 +890,64 @@ onDoctorLogin(data.user, doctorData);
   );
 }
 
+function NotificationBell({ userId }) {
+  const { notifications, unreadCount, markAllRead } = useNotifications(userId);
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+
+  useEffect(() => {
+    const handleClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const formatTime = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return d.toLocaleDateString('en-NG', { day: '2-digit', month: 'short' });
+  };
+
+
+  return (
+    <div style={{ position: 'relative' }} ref={ref}>
+      <div className="notif-bell" onClick={() => { setOpen(!open); if (!open && unreadCount > 0) markAllRead(); }}>
+        🔔
+        {unreadCount > 0 && <div className="notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</div>}
+      </div>
+      {open && (
+        <div className="notif-dropdown">
+          <div className="notif-header">
+            <div className="notif-title">Notifications</div>
+            {unreadCount > 0 && (
+              <span style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', fontFamily: "'Manrope',sans-serif" }} onClick={markAllRead}>
+                Mark all read
+              </span>
+            )}
+          </div>
+          <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+            {notifications.length === 0 ? (
+              <div className="notif-empty">No notifications yet</div>
+            ) : (
+              notifications.map(n => (
+                <div key={n.id} className={`notif-item${!n.read ? ' unread' : ''}`}>
+                  <div className="notif-item-title">{n.title}</div>
+                  <div className="notif-item-msg">{n.message}</div>
+                  <div className="notif-item-time">{formatTime(n.created_at)}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Sidebar({ active, onNav, userPhoto, userName, onLogout, mobileOpen }) {
   const sections = [
     { label: "", items: [{ id: "dashboard", label: "Dashboard", short: "DB" }, { id: "wallet", label: "Wallet", short: "WL" }, { id: "transactions", label: "Transactions", short: "TX" }] },
@@ -1179,6 +1251,51 @@ function Dashboard({ onNav, userName, userId }) {
     </div>
   );
 }
+
+function useNotifications(userId) {
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchNotifications();
+    const subscription = supabase
+      .channel('notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, (payload) => {
+        setNotifications(prev => [payload.new, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      })
+      .subscribe();
+    return () => supabase.removeChannel(subscription);
+  }, [userId]);
+
+  const fetchNotifications = async () => {
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setNotifications(data || []);
+    setUnreadCount((data || []).filter(n => !n.read).length);
+  };
+
+  const markAllRead = async () => {
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', userId)
+      .eq('read', false);
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  };
+
+  return { notifications, unreadCount, markAllRead };
+}
+
+const createNotification = async (userId, title, message, type = 'info') => {
+  await supabase.from('notifications').insert({ user_id: userId, title, message, type });
+};
 
 function WalletPage({ userId }) {
   const [wallet, setWallet] = useState(null);
@@ -3749,8 +3866,6 @@ function TelemedicinePage({ userId, userName }) {
   const generateTimeOptions = (slots) => {
     const times = [];
     slots.forEach(slot => {
-      const start = slot.start_time;
-      const end = slot.end_time;
       const toMin = t => {
         const [time, period] = t.split(' ');
         let [h, m] = time.split(':').map(Number);
@@ -3766,8 +3881,8 @@ function TelemedicinePage({ userId, userName }) {
         if (h === 0) h = 12;
         return `${h}:${min.toString().padStart(2, '0')} ${period}`;
       };
-      let current = toMin(start);
-      const endMin = toMin(end);
+      let current = toMin(slot.start_time);
+      const endMin = toMin(slot.end_time);
       while (current < endMin) {
         times.push(toTime(current));
         current += 30;
@@ -3809,16 +3924,15 @@ function TelemedicinePage({ userId, userName }) {
       });
       if (apptError) throw apptError;
 
-      const { data: deductResult, error: deductError } = await supabase
-  .rpc('deduct_wallet_and_record', {
-    p_user_id: userId,
-    p_amount: 1500,
-    p_name: `Consultation fee — ${selectedDoctor.full_name}`,
-  });
-if (deductError) throw deductError;
-if (!deductResult.success) throw new Error(deductResult.error);
+      const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_and_record', {
+        p_user_id: userId,
+        p_amount: 1500,
+        p_name: `Consultation fee — ${selectedDoctor.full_name}`,
+      });
+      if (deductError) throw deductError;
+      if (!deductResult.success) throw new Error(deductResult.error);
 
-setWallet({ ...wallet, balance: deductResult.new_balance });
+      setWallet({ ...wallet, balance: deductResult.new_balance });
       setBooking(false);
       setSelectedDoctor(null);
       setBookingStep(1);
@@ -3826,7 +3940,6 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
       setSelectedTime('');
       setReason('');
       alert(`Booking confirmed! Your appointment with ${selectedDoctor.full_name} is scheduled for ${selectedDate} at ${selectedTime}. N1,500 has been deducted from your wallet.`);
-
     } catch (e) {
       setBookingError(e.message);
       setBooking(false);
@@ -3847,33 +3960,23 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
       const AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
       const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       setAgoraClient(client);
+      const channel = 'testchannel';
+      const token = '007eJxTYNh9zOuS/6a1rIweAq83hVzjPrdfxuj1rFm8G8/2FrKuLM9VYDBNtTQ3SjRNSjQwsTAxNrC0MEgzM05JMU40NbG0sDBIqgk9l9kQyMiQ/EyChZEBAkF8boaS1OKS5IzEvLzUHAYGAByVIcI=';
 
-      const channel = `consult_${userId}_${doctor.id}_${Date.now()}`;
+      await supabase.from('appointments').insert({
+        user_id: userId,
+        patient_id: userId,
+        patient_name: userName,
+        doctor_id: doctor.id,
+        doctor_name: doctor.full_name,
+        title: `${type === 'video' ? 'Video' : 'Audio'} Call`,
+        date: new Date().toISOString(),
+        type: type,
+        status: 'active',
+        agora_channel: channel,
+      });
 
-      const APP_ID = '5e972a5ba048430980f63dd3a549880b';
-const APP_CERTIFICATE = '99fb9566a82e4827937ab62d1297781d';
-const uid = 0;
-const expireTime = Math.floor(Date.now() / 1000) + 3600 * 24;
-const token = RtcTokenBuilder.buildTokenWithUid(
-  APP_ID, APP_CERTIFICATE, channel, uid,
-  RtcRole.PUBLISHER, expireTime, expireTime
-);
-
-// Save active call to Supabase so doctor can join
-await supabase.from('appointments').insert({
-  user_id: userId,
-  patient_id: userId,
-  patient_name: userName,
-  doctor_id: doctor.id,
-  doctor_name: doctor.full_name,
-  title: `${type === 'video' ? 'Video' : 'Audio'} Call`,
-  date: new Date().toISOString(),
-  type: type,
-  status: 'active',
-  agora_channel: channel,
-});
-
-await client.join(AGORA_APP_ID, channel, token, userId);
+      await client.join(AGORA_APP_ID, channel, token, userId);
 
       if (type === 'video') {
         const [micTrack, camTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
@@ -3897,21 +4000,20 @@ await client.join(AGORA_APP_ID, channel, token, userId);
         setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
       });
 
-      const { data: deductResult, error: deductError } = await supabase
-  .rpc('deduct_wallet_and_record', {
-    p_user_id: userId,
-    p_amount: 1500,
-    p_name: `${type === 'video' ? 'Video' : 'Audio'} consultation — ${doctor.full_name}`,
-  });
-if (deductError) throw deductError;
-if (!deductResult.success) throw new Error(deductResult.error);
-setWallet({ ...wallet, balance: deductResult.new_balance });
+      const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_and_record', {
+        p_user_id: userId,
+        p_amount: 1500,
+        p_name: `${type === 'video' ? 'Video' : 'Audio'} consultation — ${doctor.full_name}`,
+      });
+      if (deductError) throw deductError;
+      if (!deductResult.success) throw new Error(deductResult.error);
+      setWallet({ ...wallet, balance: deductResult.new_balance });
 
-} catch (e) {
-  console.error('Agora error:', e);
-  alert('Call error: ' + e.message);
-  setCallActive(false);
-}
+    } catch (e) {
+      console.error('Agora error:', e);
+      alert('Call error: ' + e.message);
+      setCallActive(false);
+    }
   };
 
   const endCall = async () => {
@@ -3919,14 +4021,7 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
       (Array.isArray(localTrack) ? localTrack : [localTrack]).forEach(t => { t.stop(); t.close(); });
     }
     if (agoraClient) await agoraClient.leave();
-
-    // Mark appointment as completed
-    await supabase
-      .from('appointments')
-      .update({ status: 'completed' })
-      .eq('user_id', userId)
-      .eq('status', 'active');
-
+    await supabase.from('appointments').update({ status: 'completed' }).eq('user_id', userId).eq('status', 'active');
     setCallActive(false);
     setAgoraClient(null);
     setLocalTrack(null);
@@ -3935,7 +4030,6 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
   };
 
   const filtered = filter === 'all' ? doctors : doctors.filter(d => d.is_available === (filter === 'online'));
-
   const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'DR';
 
   return (
@@ -3954,44 +4048,31 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
         </div>
       </div>
 
-      {/* Wallet balance warning */}
       {wallet && Number(wallet.balance) < 1000 && (
         <div style={{ background: '#fee2e2', border: '1.5px solid var(--danger)', borderRadius: 12, padding: '14px 18px', marginBottom: 20, fontSize: 13, color: '#991b1b', fontFamily: "'Manrope',sans-serif" }}>
-          <strong>Low balance:</strong> Your wallet balance is insufficient for a consultation. Please fund your wallet with at least N1,500 to book or start a call.
+          <strong>Low balance:</strong> Your wallet balance is insufficient for a consultation. Please fund your wallet with at least N1,500.
         </div>
       )}
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 18 }}>
-          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--success)' }}>
-            {doctors.filter(d => d.is_available).length}
-          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--success)' }}>{doctors.filter(d => d.is_available).length}</div>
           <div style={{ fontSize: 12, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>Available Now</div>
         </div>
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 18 }}>
-          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--primary)' }}>
-            {doctors.length}
-          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--primary)' }}>{doctors.length}</div>
           <div style={{ fontSize: 12, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>Total Doctors</div>
         </div>
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 18 }}>
-          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--warning)' }}>
-            N1,500
-          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--warning)' }}>N1,500</div>
           <div style={{ fontSize: 12, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>Flat Rate Per Session</div>
         </div>
       </div>
 
-      {/* Doctors grid */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>
-          Loading doctors...
-        </div>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--slate)' }}>Loading doctors...</div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>
-          No doctors found.
-        </div>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--slate)' }}>No doctors found.</div>
       ) : (
         <div className="doctors-grid">
           {filtered.map(doc => (
@@ -4003,53 +4084,28 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
                 <div>
                   <div className="doctor-name">{doc.full_name}</div>
                   <div className="doctor-specialty">{doc.specialty}</div>
-                  <div className="doctor-rating">
-                    {doc.rating > 0 ? `Rating: ${doc.rating}` : 'New Doctor'} · {doc.experience_years} yrs exp
-                  </div>
+                  <div className="doctor-rating">{doc.rating > 0 ? `Rating: ${doc.rating}` : 'New Doctor'} · {doc.experience_years} yrs exp</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10, fontSize: 12, fontWeight: 600, fontFamily: "'Manrope',sans-serif" }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10, fontSize: 12, fontWeight: 600 }}>
                 <span className={'status-dot ' + (doc.is_available ? 'online' : 'offline')} />
-                <span style={{ color: doc.is_available ? 'var(--success)' : 'var(--slate-light)' }}>
-                  {doc.is_available ? 'Available' : 'Unavailable'}
-                </span>
-                <span style={{ marginLeft: 'auto', fontSize: 14, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--navy)' }}></span>
+                <span style={{ color: doc.is_available ? 'var(--success)' : 'var(--slate-light)' }}>{doc.is_available ? 'Available' : 'Unavailable'}</span>
               </div>
               {doc.bio && (
-                <div style={{ fontSize: 12, color: 'var(--slate)', marginBottom: 10, fontFamily: "'Manrope',sans-serif", lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                <div style={{ fontSize: 12, color: 'var(--slate)', marginBottom: 10, lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {doc.bio}
                 </div>
               )}
               <div className="doctor-call-actions">
-                <button
-                  className="call-btn call-btn-video"
-                  onClick={() => startCall(doc, 'video')}
-                  disabled={!doc.is_available}
-                  style={{ opacity: doc.is_available ? 1 : 0.4 }}
-                >
-                  Video
-                </button>
-                <button
-                  className="call-btn call-btn-audio"
-                  onClick={() => startCall(doc, 'audio')}
-                  disabled={!doc.is_available}
-                  style={{ opacity: doc.is_available ? 1 : 0.4 }}
-                >
-                  Audio
-                </button>
-                <button
-                  className="call-btn call-btn-chat"
-                  onClick={() => { setSelectedDoctor(doc); setBookingStep(1); setConsultationType('chat'); }}
-                >
-                  Schedule
-                </button>
+                <button className="call-btn call-btn-video" onClick={() => startCall(doc, 'video')} disabled={!doc.is_available} style={{ opacity: doc.is_available ? 1 : 0.4 }}>Video</button>
+                <button className="call-btn call-btn-audio" onClick={() => startCall(doc, 'audio')} disabled={!doc.is_available} style={{ opacity: doc.is_available ? 1 : 0.4 }}>Audio</button>
+                <button className="call-btn call-btn-chat" onClick={() => { setSelectedDoctor(doc); setBookingStep(1); setConsultationType('chat'); }}>Schedule</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Booking Modal */}
       {selectedDoctor && (
         <div className="modal-overlay" onClick={() => setSelectedDoctor(null)}>
           <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
@@ -4062,11 +4118,11 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
                 <div className="doctor-avatar">{getInitials(selectedDoctor.full_name)}</div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>{selectedDoctor.full_name}</div>
-                  <div style={{ color: 'var(--primary)', fontSize: 13, fontWeight: 600, fontFamily: "'Manrope',sans-serif" }}>{selectedDoctor.specialty}</div>
+                  <div style={{ color: 'var(--primary)', fontSize: 13, fontWeight: 600 }}>{selectedDoctor.specialty}</div>
                 </div>
                 <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>N1,500</div>
-                  <div style={{ fontSize: 11, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>consultation fee</div>
+                  <div style={{ fontSize: 11, color: 'var(--slate)' }}>consultation fee</div>
                 </div>
               </div>
 
@@ -4074,16 +4130,10 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
                 <>
                   <div className="form-group">
                     <label className="form-label">Select Date</label>
-                    <input
-                      className="form-input"
-                      type="date"
-                      value={selectedDate}
-                      min={new Date().toISOString().split('T')[0]}
-                      onChange={e => handleDateChange(e.target.value, selectedDoctor.id)}
-                    />
+                    <input className="form-input" type="date" value={selectedDate} min={new Date().toISOString().split('T')[0]} onChange={e => handleDateChange(e.target.value, selectedDoctor.id)} />
                   </div>
                   {selectedDate && availableSlots.length === 0 && (
-                    <div style={{ padding: '12px 14px', background: '#fee2e2', borderRadius: 10, fontSize: 13, color: '#991b1b', fontFamily: "'Manrope',sans-serif", marginBottom: 16 }}>
+                    <div style={{ padding: '12px 14px', background: '#fee2e2', borderRadius: 10, fontSize: 13, color: '#991b1b', marginBottom: 16 }}>
                       No available slots for this day. Please choose another date.
                     </div>
                   )}
@@ -4092,9 +4142,7 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
                       <label className="form-label">Select Time</label>
                       <div className="time-slots">
                         {generateTimeOptions(availableSlots).map(t => (
-                          <div key={t} className={'time-slot' + (selectedTime === t ? ' selected' : '')} onClick={() => setSelectedTime(t)}>
-                            {t}
-                          </div>
+                          <div key={t} className={'time-slot' + (selectedTime === t ? ' selected' : '')} onClick={() => setSelectedTime(t)}>{t}</div>
                         ))}
                       </div>
                     </div>
@@ -4103,23 +4151,13 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
                     <label className="form-label">Consultation Type</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                       {['video', 'audio', 'chat'].map(t => (
-                        <div
-                          key={t}
-                          onClick={() => setConsultationType(t)}
-                          style={{ border: `1.5px solid ${consultationType === t ? 'var(--primary)' : '#dce8eb'}`, borderRadius: 10, padding: 12, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: consultationType === t ? 'var(--primary)' : 'var(--navy)', background: consultationType === t ? 'var(--primary-pale)' : 'white', fontFamily: "'Manrope',sans-serif" }}
-                        >
+                        <div key={t} onClick={() => setConsultationType(t)} style={{ border: `1.5px solid ${consultationType === t ? 'var(--primary)' : '#dce8eb'}`, borderRadius: 10, padding: 12, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: consultationType === t ? 'var(--primary)' : 'var(--navy)', background: consultationType === t ? 'var(--primary-pale)' : 'white' }}>
                           {t.charAt(0).toUpperCase() + t.slice(1)}
                         </div>
                       ))}
                     </div>
                   </div>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => setBookingStep(2)}
-                    disabled={!selectedDate || !selectedTime}
-                  >
-                    Continue
-                  </button>
+                  <button className="btn btn-primary" onClick={() => setBookingStep(2)} disabled={!selectedDate || !selectedTime}>Continue</button>
                 </>
               )}
 
@@ -4127,41 +4165,24 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
                 <>
                   <div className="form-group">
                     <label className="form-label">Reason for Visit</label>
-                    <textarea
-                      className="form-input"
-                      rows={3}
-                      placeholder="Briefly describe your symptoms or reason for consultation..."
-                      value={reason}
-                      onChange={e => setReason(e.target.value)}
-                      style={{ resize: 'none' }}
-                    />
+                    <textarea className="form-input" rows={3} placeholder="Briefly describe your symptoms..." value={reason} onChange={e => setReason(e.target.value)} style={{ resize: 'none' }} />
                   </div>
-
                   <div style={{ background: 'var(--primary-pale)', borderRadius: 12, padding: 16, marginBottom: 18 }}>
                     <div style={{ fontWeight: 700, color: 'var(--navy)', marginBottom: 10, fontSize: 13, fontFamily: "'Montserrat',sans-serif" }}>Booking Summary</div>
-                    <div style={{ fontSize: 13, color: 'var(--navy-light)', lineHeight: 2, fontFamily: "'Manrope',sans-serif" }}>
+                    <div style={{ fontSize: 13, lineHeight: 2 }}>
                       <div>Doctor: <strong>{selectedDoctor.full_name}</strong></div>
                       <div>Date: <strong>{selectedDate}</strong></div>
                       <div>Time: <strong>{selectedTime}</strong></div>
                       <div>Type: <strong>{consultationType}</strong></div>
-                      <div>Fee: <strong style={{ color: 'var(--danger)' }}>N1,500</strong> will be deducted from wallet</div>
-                      <div>Wallet Balance After: <strong style={{ color: wallet && Number(wallet.balance) >= 1000 ? 'var(--success)' : 'var(--danger)' }}>
-                        N{wallet ? (Number(wallet.balance) - 1000).toLocaleString() : '0'}
-                      </strong></div>
+                      <div>Fee: <strong style={{ color: 'var(--danger)' }}>N1,500</strong> will be deducted</div>
                     </div>
                   </div>
-
                   {bookingError && (
-                    <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16, fontFamily: "'Manrope',sans-serif" }}>
-                      {bookingError}
-                    </div>
+                    <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16 }}>{bookingError}</div>
                   )}
-
                   <div style={{ display: 'flex', gap: 10 }}>
                     <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setBookingStep(1)}>Back</button>
-                    <button className="btn btn-primary" style={{ flex: 2 }} onClick={confirmBooking} disabled={booking}>
-                      {booking ? 'Confirming...' : 'Confirm Booking — N1,500'}
-                    </button>
+                    <button className="btn btn-primary" style={{ flex: 2 }} onClick={confirmBooking} disabled={booking}>{booking ? 'Confirming...' : 'Confirm Booking — N1,500'}</button>
                   </div>
                 </>
               )}
@@ -4170,21 +4191,16 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
         </div>
       )}
 
-      {/* Active Call UI */}
       {callActive && (
         <div style={{ position: 'fixed', inset: 0, background: '#0f1f2e', zIndex: 2000, display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 16, color: 'white', fontFamily: "'Montserrat',sans-serif" }}>
-                {callType === 'video' ? 'Video' : 'Audio'} Consultation
-              </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontFamily: "'Manrope',sans-serif" }}>
-                {callDoctor?.full_name} · {callDoctor?.specialty}
-              </div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: 'white', fontFamily: "'Montserrat',sans-serif" }}>{callType === 'video' ? 'Video' : 'Audio'} Consultation</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{callDoctor?.full_name} · {callDoctor?.specialty}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)' }} />
-              <span style={{ fontSize: 12, color: 'var(--success)', fontFamily: "'Manrope',sans-serif" }}>Connected</span>
+              <span style={{ fontSize: 12, color: 'var(--success)' }}>Connected</span>
             </div>
           </div>
 
@@ -4193,7 +4209,7 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
               <>
                 <div ref={remoteRef} style={{ width: '100%', maxWidth: 800, height: 450, background: '#1a2f42', borderRadius: 16, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {remoteUsers.length === 0 && (
-                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontFamily: "'Manrope',sans-serif" }}>
+                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
                       <div style={{ fontSize: 48, marginBottom: 12 }}>👨‍⚕️</div>
                       <div>Waiting for doctor to join...</div>
                     </div>
@@ -4207,23 +4223,15 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
                   {getInitials(callDoctor?.full_name)}
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: 'white', fontFamily: "'Montserrat',sans-serif" }}>{callDoctor?.full_name}</div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 6, fontFamily: "'Manrope',sans-serif" }}>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
                   {remoteUsers.length > 0 ? 'Call connected' : 'Waiting for doctor to join...'}
-                </div>
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 20 }}>
-                  {[0,1,2].map(i => (
-                    <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', animation: 'pulse 1.5s infinite', animationDelay: `${i * 0.3}s` }} />
-                  ))}
                 </div>
               </div>
             )}
           </div>
 
-          <div style={{ padding: '20px 24px', display: 'flex', justifyContent: 'center', gap: 16, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <button
-              onClick={endCall}
-              style={{ padding: '14px 32px', borderRadius: 50, background: 'var(--danger)', color: 'white', border: 'none', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "'Montserrat',sans-serif" }}
-            >
+          <div style={{ padding: '20px 24px', display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <button onClick={endCall} style={{ padding: '14px 32px', borderRadius: 50, background: 'var(--danger)', color: 'white', border: 'none', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "'Montserrat',sans-serif" }}>
               End Call
             </button>
           </div>
