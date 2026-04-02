@@ -35,9 +35,3 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: e.message });
   }
 };
-```
-
-**Step 3** — Add these to your Vercel environment variables. Go to **Vercel → your project → Settings → Environment Variables** and add:
-```
-AGORA_APP_ID = 5e972a5ba048430980f63dd3a549880b
-AGORA_APP_CERTIFICATE = 99fb9566a82e4827937ab62d1297781d
