@@ -3849,9 +3849,7 @@ setWallet({ ...wallet, balance: deductResult.new_balance });
 
       const channel = `consult_${userId}_${doctor.id}_${Date.now()}`;
 
-      const tokenResponse = await fetch(
-        `/api/agora-token?channel=${channel}&uid=${userId}`
-      );
+      const tokenResponse = await fetch(`/api/agora-token?channel=${channel}&uid=0`);
       const tokenData = await tokenResponse.json();
       if (!tokenData.token) throw new Error('Failed to get call token');
       const token = tokenData.token;
