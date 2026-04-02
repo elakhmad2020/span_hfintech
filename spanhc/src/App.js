@@ -5352,7 +5352,7 @@ return (
   />
 )}
       <div className="main-content">
-  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #eef2f5' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #eef2f5' }}>
     <button
       onClick={() => setSidebarOpen(!sidebarOpen)}
       className="mobile-menu-btn"
@@ -5362,6 +5362,9 @@ return (
     </button>
     <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>
       Span Healthcare
+    </div>
+    <div style={{ marginLeft: 'auto' }}>
+      <NotificationBell userId={userId} />
     </div>
   </div>
   {pages[page] || pages.dashboard}
