@@ -1078,13 +1078,15 @@ function Dashboard({ onNav, userName, userId }) {
   };
 
   const formatApptDate = (iso) => {
-    if (!iso) return { time: '', date: '' };
-    const d = new Date(iso);
-    return {
-      time: d.toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }),
-      date: d.toLocaleDateString('en-NG', { day: '2-digit', month: 'short' }),
-    };
-  };
+    if (!iso) return 'N/A'
+    return new Date(iso).toLocaleDateString('en-NG', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Africa/Lagos'  // ← this too
+    })
+  }
 
   const firstName = userName ? userName.split(' ')[0] : '';
   const todayStr = new Date().toLocaleDateString('en-NG', {
@@ -3907,7 +3909,21 @@ function TelemedicinePage({ userId, userName }) {
     setBooking(true);
     try {
       const channel = `consult_${userId}_${selectedDoctor.id}_${Date.now()}`;
-      const appointmentDate = new Date(`${selectedDate} ${selectedTime}`).toISOString();
+     // Parse the time correctly in WAT (UTC+1)
+const parseWATTime = (date, time) => {
+  // Convert "2:00 PM" to 24hr
+  const [timePart, period] = time.split(' ')
+  let [hours, minutes] = timePart.split(':').map(Number)
+  if (period === 'PM' && hours !== 12) hours += 12
+  if (period === 'AM' && hours === 12) hours = 0
+  
+  // Build ISO string manually with +01:00 offset (WAT)
+  const [year, month, day] = date.split('-')
+  const pad = n => String(n).padStart(2, '0')
+  return `${year}-${month}-${day}T${pad(hours)}:${pad(minutes)}:00+01:00`
+}
+
+const appointmentDate = parseWATTime(selectedDate, selectedTime)
 
       const { error: apptError } = await supabase.from('appointments').insert({
         user_id: userId,
@@ -3961,7 +3977,7 @@ function TelemedicinePage({ userId, userName }) {
       const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       setAgoraClient(client);
       const channel = 'testchannel';
-      const token = '007eJxTYNh9zOuS/6a1rIweAq83hVzjPrdfxuj1rFm8G8/2FrKuLM9VYDBNtTQ3SjRNSjQwsTAxNrC0MEgzM05JMU40NbG0sDBIqgk9l9kQyMiQ/EyChZEBAkF8boaS1OKS5IzEvLzUHAYGAByVIcI=';
+      const token = '007eJxTYAjf+ObD7rUapWlrfCuNgn32M92bknHvRkyw2P1n0y4sLfmswGCaamlulGialGhgYmFibGBpYZBmZpySYpxoamJpYWGQZHjjfGZDICPDRaZXTIwMEAjiczOUpBaXJGck5uWl5jAwAADwkSSk';
 
       await supabase.from('appointments').insert({
         user_id: userId,
@@ -4500,6 +4516,26 @@ function AppointmentsPage({ userId }) {
   const [tab, setTab] = useState('Upcoming');
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const formatApptTime = (iso) => {
+    if (!iso) return 'N/A'
+    return new Date(iso).toLocaleTimeString('en-NG', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Africa/Lagos'
+    }) + ' WAT'
+  }
+
+  const formatApptDate = (iso) => {
+    if (!iso) return 'N/A'
+    return new Date(iso).toLocaleDateString('en-NG', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Africa/Lagos'
+    })
+  }
 
   useEffect(() => {
     if (!userId) return;
@@ -4583,8 +4619,8 @@ function AppointmentsPage({ userId }) {
           {filtered.map(a => (
             <div key={a.id} className="appt-item">
               <div style={{ minWidth: 70, textAlign: 'center' }}>
-                <div className="appt-time-val" style={{ fontSize: 13 }}>{formatTime(a.date)}</div>
-                <div className="appt-time-date">{formatDate(a.date)}</div>
+              <div className="appt-time-val">{formatApptTime(a.date)}</div>
+              <div className="appt-time-date">{formatApptDate(a.date)}</div>
               </div>
               <div className="appt-divider" />
               <div style={{ flex: 1 }}>
