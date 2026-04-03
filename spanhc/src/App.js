@@ -5,6 +5,7 @@ import { supabase } from './supabase';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+const AGORA_APP_ID = '5e972a5ba048430980f63dd3a549880b';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
@@ -2760,25 +2761,32 @@ console.log('doctorProfile received:', doctorProfile);
   const doctorLocalRef = useRef();
   const doctorRemoteRef = useRef();
   const joinCall = async (appointment) => {
-    const AGORA_APP_ID = '5e972a5ba048430980f63dd3a549880b';
-    const token = '007eJxTYHjNL145ucAoNS0iPUHjo/Zm7Wrr3IxrHfK+citKPyXksikwmKZamhslmiYlGphYmBgbWFoYpJkZp6QYJ5qaWFpYGCQtXbUosyGQkaF8+SxmRgYIBPG5GUpSi0uSMxLz8lJzGBgAUu0f+g==';
     try {
       const AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
       const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       setDoctorCallClient(client);
-      await client.join(AGORA_APP_ID, appointment.agora_channel, token, null);
+  
+      // Use the channel name saved when patient started the call
+      const channel = appointment.agora_channel;
+  
+      // Join with null token — same as patient
+      await client.join(AGORA_APP_ID, channel, null, appointment.doctor_id.replace(/-/g, '').slice(0, 8));
+  
       const [micTrack, camTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
       setDoctorLocalTrack([micTrack, camTrack]);
       await client.publish([micTrack, camTrack]);
       setDoctorCallActive(true);
       camTrack.play(doctorLocalRef.current);
+  
       client.on('user-published', async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         if (mediaType === 'video') user.videoTrack?.play(doctorRemoteRef.current);
         if (mediaType === 'audio') user.audioTrack?.play();
       });
+  
     } catch (e) {
       alert('Error joining call: ' + e.message);
+      console.error('Doctor join error:', e);
     }
   };
 
@@ -3798,7 +3806,7 @@ function MessagesPage({ userId, userName }) {
 }
 
 function TelemedicinePage({ userId, userName }) {
-  const AGORA_APP_ID = '5e972a5ba048430980f63dd3a549880b';
+ 
   const [doctors, setDoctors] = useState([]);
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -3807,7 +3815,6 @@ function TelemedicinePage({ userId, userName }) {
   const [bookingStep, setBookingStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
-  const [availableSlots, setAvailableSlots] = useState([]);
   const [consultationType, setConsultationType] = useState('video');
   const [reason, setReason] = useState('');
   const [booking, setBooking] = useState(false);
@@ -3846,53 +3853,6 @@ function TelemedicinePage({ userId, userName }) {
     setWallet(data);
   };
 
-  const fetchSlots = async (doctorId, day) => {
-    const { data } = await supabase
-      .from('doctor_availability')
-      .select('*')
-      .eq('doctor_id', doctorId)
-      .eq('day', day)
-      .eq('is_active', true);
-    setAvailableSlots(data || []);
-  };
-
-  const handleDateChange = (date, doctorId) => {
-    setSelectedDate(date);
-    setSelectedTime('');
-    if (date) {
-      const day = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
-      fetchSlots(doctorId, day);
-    }
-  };
-
-  const generateTimeOptions = (slots) => {
-    const times = [];
-    slots.forEach(slot => {
-      const toMin = t => {
-        const [time, period] = t.split(' ');
-        let [h, m] = time.split(':').map(Number);
-        if (period === 'PM' && h !== 12) h += 12;
-        if (period === 'AM' && h === 12) h = 0;
-        return h * 60 + m;
-      };
-      const toTime = m => {
-        let h = Math.floor(m / 60);
-        const min = m % 60;
-        const period = h >= 12 ? 'PM' : 'AM';
-        if (h > 12) h -= 12;
-        if (h === 0) h = 12;
-        return `${h}:${min.toString().padStart(2, '0')} ${period}`;
-      };
-      let current = toMin(slot.start_time);
-      const endMin = toMin(slot.end_time);
-      while (current < endMin) {
-        times.push(toTime(current));
-        current += 30;
-      }
-    });
-    return times;
-  };
-
   const confirmBooking = async () => {
     if (!userId || !selectedDoctor) return;
     setBookingError('');
@@ -3908,7 +3868,7 @@ function TelemedicinePage({ userId, userName }) {
 
     setBooking(true);
     try {
-      const channel = `consult_${userId}_${selectedDoctor.id}_${Date.now()}`;
+      const channel = `consult_${userId.replace(/-/g, '').slice(0, 16)}_${selectedDoctor.id.replace(/-/g, '').slice(0, 16)}`;
      // Parse the time correctly in WAT (UTC+1)
 const parseWATTime = (date, time) => {
   // Convert "2:00 PM" to 24hr
@@ -3923,7 +3883,7 @@ const parseWATTime = (date, time) => {
   return `${year}-${month}-${day}T${pad(hours)}:${pad(minutes)}:00+01:00`
 }
 
-const appointmentDate = parseWATTime(selectedDate, selectedTime)
+const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00 AM' : '2:00 PM')
 
       const { error: apptError } = await supabase.from('appointments').insert({
         user_id: userId,
@@ -3963,23 +3923,25 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime)
   };
 
   const startCall = async (doctor, type) => {
-    if (!wallet || Number(wallet.balance) < 1000) {
+    if (!wallet || Number(wallet.balance) < 1500) {
       alert('Insufficient balance. Please fund your wallet with at least N1,500 to start a consultation.');
       return;
     }
-
+  
     setCallDoctor(doctor);
     setCallType(type);
     setCallActive(true);
-
+  
     try {
       const AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
       const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       setAgoraClient(client);
-      const channel = 'testchannel';
-      const token = '007eJxTYAjf+ObD7rUapWlrfCuNgn32M92bknHvRkyw2P1n0y4sLfmswGCaamlulGialGhgYmFibGBpYZBmZpySYpxoamJpYWGQZHjjfGZDICPDRaZXTIwMEAjiczOUpBaXJGck5uWl5jAwAADwkSSk';
-
-      await supabase.from('appointments').insert({
+  
+      // Generate clean channel name — no dashes, within 64 bytes
+      const channel = `span${userId.replace(/-/g, '').slice(0, 10)}${doctor.id.replace(/-/g, '').slice(0, 10)}`;
+  
+      // Save appointment with channel name so doctor can join same channel
+      const { error: apptError } = await supabase.from('appointments').insert({
         user_id: userId,
         patient_id: userId,
         patient_name: userName,
@@ -3991,9 +3953,11 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime)
         status: 'active',
         agora_channel: channel,
       });
-
-      await client.join(AGORA_APP_ID, channel, token, userId);
-
+      if (apptError) throw apptError;
+  
+      // Join with null token (works for testing in Agora without token auth)
+      await client.join(AGORA_APP_ID, channel, null, userId.replace(/-/g, '').slice(0, 8));
+  
       if (type === 'video') {
         const [micTrack, camTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
         setLocalTrack([micTrack, camTrack]);
@@ -4004,18 +3968,19 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime)
         setLocalTrack([micTrack]);
         await client.publish([micTrack]);
       }
-
+  
       client.on('user-published', async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         if (mediaType === 'video') user.videoTrack?.play(remoteRef.current);
         if (mediaType === 'audio') user.audioTrack?.play();
         setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
       });
-
+  
       client.on('user-unpublished', (user) => {
         setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
       });
-
+  
+      // Only deduct AFTER successfully joining
       const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_and_record', {
         p_user_id: userId,
         p_amount: 1500,
@@ -4024,11 +3989,13 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime)
       if (deductError) throw deductError;
       if (!deductResult.success) throw new Error(deductResult.error);
       setWallet({ ...wallet, balance: deductResult.new_balance });
-
+  
     } catch (e) {
       console.error('Agora error:', e);
       alert('Call error: ' + e.message);
       setCallActive(false);
+      setAgoraClient(null);
+      setLocalTrack(null);
     }
   };
 
@@ -4143,39 +4110,80 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime)
               </div>
 
               {bookingStep === 1 && (
-                <>
-                  <div className="form-group">
-                    <label className="form-label">Select Date</label>
-                    <input className="form-input" type="date" value={selectedDate} min={new Date().toISOString().split('T')[0]} onChange={e => handleDateChange(e.target.value, selectedDoctor.id)} />
-                  </div>
-                  {selectedDate && availableSlots.length === 0 && (
-                    <div style={{ padding: '12px 14px', background: '#fee2e2', borderRadius: 10, fontSize: 13, color: '#991b1b', marginBottom: 16 }}>
-                      No available slots for this day. Please choose another date.
-                    </div>
-                  )}
-                  {selectedDate && availableSlots.length > 0 && (
-                    <div className="form-group">
-                      <label className="form-label">Select Time</label>
-                      <div className="time-slots">
-                        {generateTimeOptions(availableSlots).map(t => (
-                          <div key={t} className={'time-slot' + (selectedTime === t ? ' selected' : '')} onClick={() => setSelectedTime(t)}>{t}</div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="form-group">
-                    <label className="form-label">Consultation Type</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                      {['video', 'audio', 'chat'].map(t => (
-                        <div key={t} onClick={() => setConsultationType(t)} style={{ border: `1.5px solid ${consultationType === t ? 'var(--primary)' : '#dce8eb'}`, borderRadius: 10, padding: 12, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: consultationType === t ? 'var(--primary)' : 'var(--navy)', background: consultationType === t ? 'var(--primary-pale)' : 'white' }}>
-                          {t.charAt(0).toUpperCase() + t.slice(1)}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button className="btn btn-primary" onClick={() => setBookingStep(2)} disabled={!selectedDate || !selectedTime}>Continue</button>
-                </>
-              )}
+  <>
+    <div className="form-group">
+      <label className="form-label">Select Date</label>
+      <input 
+        className="form-input" 
+        type="date" 
+        value={selectedDate} 
+        min={new Date().toISOString().split('T')[0]} 
+        onChange={e => setSelectedDate(e.target.value)} 
+      />
+    </div>
+
+    {selectedDate && (
+      <div className="form-group">
+        <label className="form-label">Preferred Time of Day</label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {['AM', 'PM'].map(period => (
+            <div
+              key={period}
+              onClick={() => setSelectedTime(period)}
+              style={{ 
+                border: `1.5px solid ${selectedTime === period ? 'var(--primary)' : '#dce8eb'}`, 
+                borderRadius: 10, 
+                padding: '16px', 
+                textAlign: 'center', 
+                cursor: 'pointer', 
+                fontSize: 15, 
+                fontWeight: 700, 
+                color: selectedTime === period ? 'var(--primary)' : 'var(--navy)', 
+                background: selectedTime === period ? 'var(--primary-pale)' : 'white',
+                fontFamily: "'Montserrat', sans-serif"
+              }}
+            >
+              {period === 'AM' ? '🌅 Morning (AM)' : '🌇 Afternoon (PM)'}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <div className="form-group">
+      <label className="form-label">Consultation Type</label>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        {['video', 'audio', 'chat'].map(t => (
+          <div 
+            key={t} 
+            onClick={() => setConsultationType(t)} 
+            style={{ 
+              border: `1.5px solid ${consultationType === t ? 'var(--primary)' : '#dce8eb'}`, 
+              borderRadius: 10, 
+              padding: 12, 
+              textAlign: 'center', 
+              cursor: 'pointer', 
+              fontSize: 13, 
+              fontWeight: 600, 
+              color: consultationType === t ? 'var(--primary)' : 'var(--navy)', 
+              background: consultationType === t ? 'var(--primary-pale)' : 'white' 
+            }}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <button 
+      className="btn btn-primary" 
+      onClick={() => setBookingStep(2)} 
+      disabled={!selectedDate || !selectedTime}
+    >
+      Continue
+    </button>
+  </>
+)}
 
               {bookingStep === 2 && (
                 <>
@@ -4188,7 +4196,7 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime)
                     <div style={{ fontSize: 13, lineHeight: 2 }}>
                       <div>Doctor: <strong>{selectedDoctor.full_name}</strong></div>
                       <div>Date: <strong>{selectedDate}</strong></div>
-                      <div>Time: <strong>{selectedTime}</strong></div>
+                      <div>Preferred Time: <strong>{selectedTime === 'AM' ? 'Morning (AM)' : 'Afternoon (PM)'}</strong></div>
                       <div>Type: <strong>{consultationType}</strong></div>
                       <div>Fee: <strong style={{ color: 'var(--danger)' }}>N1,500</strong> will be deducted</div>
                     </div>
