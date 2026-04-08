@@ -3977,7 +3977,6 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
         }
       );
       const tokenData2 = await tokenRes2.json();
-      console.log('Token response:', tokenData2);
       const agoraToken2 = tokenData2.token;
       await client.join(AGORA_APP_ID, channel, agoraToken2, userId.replace(/-/g, '').slice(0, 8));
       if (type === 'video') {
