@@ -2768,10 +2768,19 @@ console.log('doctorProfile received:', doctorProfile);
   
       // Use the channel name saved when patient started the call
       const channel = appointment.agora_channel;
-  
-      // Join with null token — same as patient
-      await client.join(AGORA_APP_ID, channel, null, appointment.doctor_id.replace(/-/g, '').slice(0, 8));
-  
+      const tokenRes1 = await fetch(
+        'https://ssmjjtbvrakzfsxezavp.supabase.co/functions/v1/agora-token',
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbWpqdGJ2cmFremZzeGV6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE5NzQsImV4cCI6MjA4NzQ0Nzk3NH0.f3VNuJC0Tu7wcYOoCDvFULVpuOVLQoAS0c39bpJKXRg',
+          },
+          body: JSON.stringify({ channelName: channel, uid: 0 }),
+        }
+      );
+      const { token: agoraToken1 } = await tokenRes1.json();
+      await client.join(AGORA_APP_ID, channel, agoraToken1, appointment.doctor_id.replace(/-/g, '').slice(0, 8));
       const [micTrack, camTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
       setDoctorLocalTrack([micTrack, camTrack]);
       await client.publish([micTrack, camTrack]);
@@ -3954,10 +3963,23 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
         agora_channel: channel,
       });
       if (apptError) throw apptError;
-  
-      // Join with null token (works for testing in Agora without token auth)
-      await client.join(AGORA_APP_ID, channel, null, userId.replace(/-/g, '').slice(0, 8));
-  
+      
+       // Join with null token (works for testing in Agora without token auth)
+       const tokenRes2 = await fetch(
+        'https://ssmjjtbvrakzfsxezavp.supabase.co/functions/v1/agora-token',
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbWpqdGJ2cmFremZzeGV6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE5NzQsImV4cCI6MjA4NzQ0Nzk3NH0.f3VNuJC0Tu7wcYOoCDvFULVpuOVLQoAS0c39bpJKXRg',
+          },
+          body: JSON.stringify({ channelName: channel, uid: 0 }),
+        }
+      );
+      const tokenData2 = await tokenRes2.json();
+      console.log('Token response:', tokenData2);
+      const agoraToken2 = tokenData2.token;
+      await client.join(AGORA_APP_ID, channel, agoraToken2, userId.replace(/-/g, '').slice(0, 8));
       if (type === 'video') {
         const [micTrack, camTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
         setLocalTrack([micTrack, camTrack]);
@@ -3968,18 +3990,17 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
         setLocalTrack([micTrack]);
         await client.publish([micTrack]);
       }
-  
+      
       client.on('user-published', async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         if (mediaType === 'video') user.videoTrack?.play(remoteRef.current);
         if (mediaType === 'audio') user.audioTrack?.play();
         setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
       });
-  
+      
       client.on('user-unpublished', (user) => {
         setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
       });
-  
       // Only deduct AFTER successfully joining
       const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_and_record', {
         p_user_id: userId,
