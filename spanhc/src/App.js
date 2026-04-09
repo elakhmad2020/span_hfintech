@@ -3828,6 +3828,9 @@ function TelemedicinePage({ userId, userName }) {
   const [reason, setReason] = useState('');
   const [booking, setBooking] = useState(false);
   const [bookingError, setBookingError] = useState('');
+  const [surveyDuration, setSurveyDuration] = useState('');
+  const [surveySeverity, setSurveySeverity] = useState('');
+  const [surveyNotes, setSurveyNotes] = useState(''); 
   const [callActive, setCallActive] = useState(false);
   const [callType, setCallType] = useState('video');
   const [callDoctor, setCallDoctor] = useState(null);
@@ -4109,178 +4112,202 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
         </div>
       )}
 
-      {selectedDoctor && (
-        <div className="modal-overlay" onClick={() => setSelectedDoctor(null)}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">Book Appointment</div>
-              <button className="modal-close" onClick={() => setSelectedDoctor(null)}>X</button>
-            </div>
-            <div className="modal-body">
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center', padding: 14, background: 'var(--bg)', borderRadius: 12, marginBottom: 20 }}>
-                <div className="doctor-avatar">{getInitials(selectedDoctor.full_name)}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>{selectedDoctor.full_name}</div>
-                  <div style={{ color: 'var(--primary)', fontSize: 13, fontWeight: 600 }}>{selectedDoctor.specialty}</div>
-                </div>
-                <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>N1,500</div>
-                  <div style={{ fontSize: 11, color: 'var(--slate)' }}>consultation fee</div>
-                </div>
-              </div>
+{selectedDoctor && (
+  <div className="modal-overlay" onClick={() => setSelectedDoctor(null)}>
+    <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+      <div className="modal-header">
+        <div className="modal-title">
+          {bookingStep === 1 ? 'Book Consultation' : 'Confirm Booking'}
+        </div>
+        <button className="modal-close" onClick={() => setSelectedDoctor(null)}>X</button>
+      </div>
+      <div className="modal-body">
 
-              {bookingStep === 1 && (
-  <>
-    <div className="form-group">
-      <label className="form-label">Select Date</label>
-      <input 
-        className="form-input" 
-        type="date" 
-        value={selectedDate} 
-        min={new Date().toISOString().split('T')[0]} 
-        onChange={e => setSelectedDate(e.target.value)} 
-      />
-    </div>
+        {/* Doctor summary */}
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center', padding: 14, background: 'var(--bg)', borderRadius: 12, marginBottom: 20 }}>
+          <div className="doctor-avatar">{getInitials(selectedDoctor.full_name)}</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>{selectedDoctor.full_name}</div>
+            <div style={{ color: 'var(--primary)', fontSize: 13, fontWeight: 600 }}>{selectedDoctor.specialty}</div>
+          </div>
+          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>N1,500</div>
+            <div style={{ fontSize: 11, color: 'var(--slate)' }}>consultation fee</div>
+          </div>
+        </div>
 
-    {selectedDate && (
-      <div className="form-group">
-        <label className="form-label">Preferred Time of Day</label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {['AM', 'PM'].map(period => (
-            <div
-              key={period}
-              onClick={() => setSelectedTime(period)}
-              style={{ 
-                border: `1.5px solid ${selectedTime === period ? 'var(--primary)' : '#dce8eb'}`, 
-                borderRadius: 10, 
-                padding: '16px', 
-                textAlign: 'center', 
-                cursor: 'pointer', 
-                fontSize: 15, 
-                fontWeight: 700, 
-                color: selectedTime === period ? 'var(--primary)' : 'var(--navy)', 
-                background: selectedTime === period ? 'var(--primary-pale)' : 'white',
-                fontFamily: "'Montserrat', sans-serif"
-              }}
-            >
-              {period === 'AM' ? '🌅 Morning (AM)' : '🌇 Afternoon (PM)'}
-            </div>
+        {/* Step indicator */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
+          {[1, 2].map(s => (
+            <div key={s} style={{ flex: 1, height: 3, borderRadius: 2, background: bookingStep >= s ? 'var(--primary)' : '#dce8eb' }} />
           ))}
         </div>
-      </div>
-    )}
 
-    <div className="form-group">
-      <label className="form-label">Consultation Type</label>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-        {['video', 'audio', 'chat'].map(t => (
-          <div 
-            key={t} 
-            onClick={() => setConsultationType(t)} 
-            style={{ 
-              border: `1.5px solid ${consultationType === t ? 'var(--primary)' : '#dce8eb'}`, 
-              borderRadius: 10, 
-              padding: 12, 
-              textAlign: 'center', 
-              cursor: 'pointer', 
-              fontSize: 13, 
-              fontWeight: 600, 
-              color: consultationType === t ? 'var(--primary)' : 'var(--navy)', 
-              background: consultationType === t ? 'var(--primary-pale)' : 'white' 
-            }}
-          >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
-          </div>
-        ))}
+        {/* STEP 1 — Survey */}
+        {bookingStep === 1 && (
+          <>
+            <div className="form-group">
+              <label className="form-label">Select Date</label>
+              <input
+                className="form-input"
+                type="date"
+                value={selectedDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setSelectedDate(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Preferred Time</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {['AM', 'PM'].map(period => (
+                  <div
+                    key={period}
+                    onClick={() => setSelectedTime(period)}
+                    style={{
+                      border: `1.5px solid ${selectedTime === period ? 'var(--primary)' : '#dce8eb'}`,
+                      borderRadius: 10, padding: '14px', textAlign: 'center', cursor: 'pointer',
+                      fontSize: 14, fontWeight: 700,
+                      color: selectedTime === period ? 'var(--primary)' : 'var(--navy)',
+                      background: selectedTime === period ? 'var(--primary-pale)' : 'white',
+                      fontFamily: "'Montserrat', sans-serif"
+                    }}
+                  >
+                    {period === 'AM' ? 'Morning (AM)' : 'Afternoon (PM)'}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Consultation Type</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {['video', 'audio', 'chat'].map(t => (
+                  <div
+                    key={t}
+                    onClick={() => setConsultationType(t)}
+                    style={{
+                      border: `1.5px solid ${consultationType === t ? 'var(--primary)' : '#dce8eb'}`,
+                      borderRadius: 10, padding: 12, textAlign: 'center', cursor: 'pointer',
+                      fontSize: 13, fontWeight: 600,
+                      color: consultationType === t ? 'var(--primary)' : 'var(--navy)',
+                      background: consultationType === t ? 'var(--primary-pale)' : 'white'
+                    }}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Main Concern</label>
+              <select className="form-select" value={reason} onChange={e => setReason(e.target.value)}>
+                <option value="">Select your concern</option>
+                {['Fever / Malaria', 'Hypertension', 'Diabetes', 'Respiratory issues', 'Skin condition', "Women's health", 'Child health', 'General checkup', 'Other'].map(c => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">How Long Has This Been Going On?</label>
+              <select className="form-select" value={surveyDuration} onChange={e => setSurveyDuration(e.target.value)}>
+                <option value="">Select duration</option>
+                {['Today', '2–3 days', 'About a week', 'More than a week', 'Chronic / ongoing'].map(d => (
+                  <option key={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Severity</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+                {['1–2', '3–4', '5–6', '7–8', '9–10'].map((s, i) => (
+                  <div
+                    key={s}
+                    onClick={() => setSurveySeverity(s)}
+                    style={{
+                      border: `1.5px solid ${surveySeverity === s ? 'var(--primary)' : '#dce8eb'}`,
+                      borderRadius: 8, padding: '8px 4px', textAlign: 'center', cursor: 'pointer',
+                      fontSize: 12, fontWeight: 600,
+                      background: surveySeverity === s ? (i < 2 ? '#dcfce7' : i < 4 ? '#fef9c3' : '#fee2e2') : 'white',
+                      color: surveySeverity === s ? (i < 2 ? '#166634' : i < 4 ? '#854d0e' : '#991b1b') : 'var(--navy)',
+                    }}
+                  >
+                    {s}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--slate)', marginTop: 4, fontFamily: "'Manrope',sans-serif" }}>
+                <span>Mild</span><span>Severe</span>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Additional Notes (optional)</label>
+              <textarea
+                className="form-input"
+                rows={3}
+                placeholder="Any other symptoms or information for the doctor..."
+                value={surveyNotes}
+                onChange={e => setSurveyNotes(e.target.value)}
+                style={{ resize: 'none' }}
+              />
+            </div>
+
+            <div style={{ background: 'var(--primary-pale)', border: '1.5px solid var(--secondary)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: 'var(--primary-dark)', fontFamily: "'Manrope',sans-serif", lineHeight: 1.6 }}>
+              The doctor receives your survey instantly and will respond within minutes.
+            </div>
+
+            {bookingError && (
+              <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16 }}>{bookingError}</div>
+            )}
+
+            <button
+              className="btn btn-primary"
+              onClick={() => setBookingStep(2)}
+              disabled={!selectedDate || !selectedTime || !reason || !surveyDuration || !surveySeverity}
+            >
+              Review Booking
+            </button>
+          </>
+        )}
+
+        {/* STEP 2 — Confirm */}
+        {bookingStep === 2 && (
+          <>
+            <div style={{ background: 'var(--primary-pale)', borderRadius: 12, padding: 16, marginBottom: 18 }}>
+              <div style={{ fontWeight: 700, color: 'var(--navy)', marginBottom: 12, fontSize: 13, fontFamily: "'Montserrat',sans-serif" }}>Booking Summary</div>
+              <div style={{ fontSize: 13, lineHeight: 2.2, fontFamily: "'Manrope',sans-serif" }}>
+                <div>Date: <strong>{selectedDate}</strong></div>
+                <div>Time: <strong>{selectedTime === 'AM' ? 'Morning (AM)' : 'Afternoon (PM)'}</strong></div>
+                <div>Type: <strong>{consultationType}</strong></div>
+                <div>Concern: <strong>{reason}</strong></div>
+                <div>Duration: <strong>{surveyDuration}</strong></div>
+                <div>Severity: <strong>{surveySeverity}</strong></div>
+                {surveyNotes && <div>Notes: <strong>{surveyNotes}</strong></div>}
+                <div>Fee: <strong style={{ color: 'var(--danger)' }}>N1,500</strong> will be deducted</div>
+              </div>
+            </div>
+
+            {bookingError && (
+              <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16 }}>{bookingError}</div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setBookingStep(1)}>Back</button>
+              <button className="btn btn-primary" style={{ flex: 2 }} onClick={confirmBooking} disabled={booking}>
+                {booking ? 'Confirming...' : 'Confirm Booking — N1,500'}
+              </button>
+            </div>
+          </>
+        )}
+
       </div>
     </div>
-
-    <button 
-      className="btn btn-primary" 
-      onClick={() => setBookingStep(2)} 
-      disabled={!selectedDate || !selectedTime}
-    >
-      Continue
-    </button>
-  </>
+  </div>
 )}
-
-              {bookingStep === 2 && (
-                <>
-                  <div className="form-group">
-                    <label className="form-label">Reason for Visit</label>
-                    <textarea className="form-input" rows={3} placeholder="Briefly describe your symptoms..." value={reason} onChange={e => setReason(e.target.value)} style={{ resize: 'none' }} />
-                  </div>
-                  <div style={{ background: 'var(--primary-pale)', borderRadius: 12, padding: 16, marginBottom: 18 }}>
-                    <div style={{ fontWeight: 700, color: 'var(--navy)', marginBottom: 10, fontSize: 13, fontFamily: "'Montserrat',sans-serif" }}>Booking Summary</div>
-                    <div style={{ fontSize: 13, lineHeight: 2 }}>
-                      <div>Doctor: <strong>{selectedDoctor.full_name}</strong></div>
-                      <div>Date: <strong>{selectedDate}</strong></div>
-                      <div>Preferred Time: <strong>{selectedTime === 'AM' ? 'Morning (AM)' : 'Afternoon (PM)'}</strong></div>
-                      <div>Type: <strong>{consultationType}</strong></div>
-                      <div>Fee: <strong style={{ color: 'var(--danger)' }}>N1,500</strong> will be deducted</div>
-                    </div>
-                  </div>
-                  {bookingError && (
-                    <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16 }}>{bookingError}</div>
-                  )}
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setBookingStep(1)}>Back</button>
-                    <button className="btn btn-primary" style={{ flex: 2 }} onClick={confirmBooking} disabled={booking}>{booking ? 'Confirming...' : 'Confirm Booking — N1,500'}</button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {callActive && (
-        <div style={{ position: 'fixed', inset: 0, background: '#0f1f2e', zIndex: 2000, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 16, color: 'white', fontFamily: "'Montserrat',sans-serif" }}>{callType === 'video' ? 'Video' : 'Audio'} Consultation</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{callDoctor?.full_name} · {callDoctor?.specialty}</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)' }} />
-              <span style={{ fontSize: 12, color: 'var(--success)' }}>Connected</span>
-            </div>
-          </div>
-
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: 24 }}>
-            {callType === 'video' ? (
-              <>
-                <div ref={remoteRef} style={{ width: '100%', maxWidth: 800, height: 450, background: '#1a2f42', borderRadius: 16, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {remoteUsers.length === 0 && (
-                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
-                      <div style={{ fontSize: 48, marginBottom: 12 }}>👨‍⚕️</div>
-                      <div>Waiting for doctor to join...</div>
-                    </div>
-                  )}
-                </div>
-                <div ref={localRef} style={{ position: 'absolute', bottom: 40, right: 40, width: 160, height: 120, background: '#0f1f2e', borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.2)' }} />
-              </>
-            ) : (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 32, fontWeight: 800, color: 'white', fontFamily: "'Montserrat',sans-serif" }}>
-                  {getInitials(callDoctor?.full_name)}
-                </div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: 'white', fontFamily: "'Montserrat',sans-serif" }}>{callDoctor?.full_name}</div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
-                  {remoteUsers.length > 0 ? 'Call connected' : 'Waiting for doctor to join...'}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div style={{ padding: '20px 24px', display: 'flex', justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <button onClick={endCall} style={{ padding: '14px 32px', borderRadius: 50, background: 'var(--danger)', color: 'white', border: 'none', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "'Montserrat',sans-serif" }}>
-              End Call
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
