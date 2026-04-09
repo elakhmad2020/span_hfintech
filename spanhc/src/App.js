@@ -983,20 +983,24 @@ function Sidebar({ active, onNav, userPhoto, userName, onLogout, mobileOpen }) {
         ))}
       </div>
       <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar">{userPhoto ? <img src={userPhoto} alt="profile" /> : initials}</div>
-          <div><div className="sidebar-user-name">{userName || "Emeka Okafor"}</div><div className="sidebar-user-role">Principal Member</div></div>
-        </div>
-        <button className="logout-btn" onClick={onLogout}>
-          <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(224,82,82,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "#e05252", fontFamily: "'Montserrat',sans-serif" }}>OUT</div>
-          Log Out
-        </button>
-      </div>
+  {/* Availability toggle */}
+  <div className="sidebar-user">
+    <div className="sidebar-avatar">{initials}</div>
+    <div>
+    <div className="sidebar-user-name">{userName || "Member"}</div>
+    <div className="sidebar-user-role">Principal Member</div>
+    </div>
+  </div>
+  <button className="logout-btn" onClick={onLogout}>
+    <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(224,82,82,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#e05252', fontFamily: "'Montserrat',sans-serif" }}>OUT</div>
+    Log Out
+  </button>
+</div>
     </div>
   );
 }
 
-function Dashboard({ onNav, userName, userId }) {
+function Dashboard({ onNav, userName, userId, onBook }) {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [dependents, setDependents] = useState([]);
@@ -1101,9 +1105,9 @@ function Dashboard({ onNav, userName, userId }) {
           <div className="page-title">Hello, {firstName}!</div>
           <div className="page-sub">{todayStr}</div>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => onNav('telemedicine')}>
-          + Book Appointment
-        </button>
+        <button className="btn btn-primary btn-sm" onClick={onBook || (() => onNav('telemedicine'))}>
+  + Book Appointment
+</button>
       </div>
       <div className="dashboard-grid">
         <div>
@@ -2768,6 +2772,7 @@ console.log('doctorProfile received:', doctorProfile);
   
       // Use the channel name saved when patient started the call
       const channel = appointment.agora_channel;
+      const doctorUid = 2;
       const tokenRes1 = await fetch(
         'https://ssmjjtbvrakzfsxezavp.supabase.co/functions/v1/agora-token',
         {
@@ -2776,11 +2781,11 @@ console.log('doctorProfile received:', doctorProfile);
             'Content-Type': 'application/json',
             'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbWpqdGJ2cmFremZzeGV6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE5NzQsImV4cCI6MjA4NzQ0Nzk3NH0.f3VNuJC0Tu7wcYOoCDvFULVpuOVLQoAS0c39bpJKXRg',
           },
-          body: JSON.stringify({ channelName: channel, uid: 0 }),
+          body: JSON.stringify({ channelName: channel, uid: 2 }),
         }
       );
       const { token: agoraToken1 } = await tokenRes1.json();
-      await client.join(AGORA_APP_ID, channel, agoraToken1, appointment.doctor_id.replace(/-/g, '').slice(0, 8));
+      await client.join(AGORA_APP_ID, channel, agoraToken1, 2);
       const [micTrack, camTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
       setDoctorLocalTrack([micTrack, camTrack]);
       await client.publish([micTrack, camTrack]);
@@ -2800,13 +2805,24 @@ console.log('doctorProfile received:', doctorProfile);
   };
 
   const endDoctorCall = async () => {
-    if (doctorLocalTrack) {
-      (Array.isArray(doctorLocalTrack) ? doctorLocalTrack : [doctorLocalTrack]).forEach(t => { t.stop(); t.close(); });
+    try {
+      if (doctorLocalTrack) {
+        const tracks = Array.isArray(doctorLocalTrack) ? doctorLocalTrack : [doctorLocalTrack];
+        tracks.forEach(t => {
+          t.stop();
+          t.close();
+        });
+      }
+      if (doctorCallClient) {
+        await doctorCallClient.leave();
+      }
+    } catch (e) {
+      console.error('End doctor call error:', e);
+    } finally {
+      setDoctorCallActive(false);
+      setDoctorCallClient(null);
+      setDoctorLocalTrack(null);
     }
-    if (doctorCallClient) await doctorCallClient.leave();
-    setDoctorCallActive(false);
-    setDoctorCallClient(null);
-    setDoctorLocalTrack(null);
   };
   const [activePage, setActivePage] = useState('overview');
 
@@ -2927,12 +2943,13 @@ console.log('doctorProfile received:', doctorProfile);
         {activePage === 'overview' && (
           <div>
             <div className="topbar">
-              <div>
-                <div className="page-title">
-                  Hello, {profile?.full_name?.split(' ')[0]}!
-                </div>
-                <div className="page-sub">{todayStr}</div>
-              </div>
+  <div>
+    <div className="page-title">
+      Hello, {profile?.full_name?.split(' ')[0]}!
+    </div>
+    <div className="page-sub">{todayStr}</div>
+  </div>
+  <NotificationBell userId={doctorUser?.id} />
               {profile?.status === 'pending' && (
                 <div style={{ background: '#fef9c3', border: '1.5px solid var(--warning)', borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 600, color: '#854d0e', fontFamily: "'Manrope',sans-serif" }}>
                   Account pending approval
@@ -3814,7 +3831,7 @@ function MessagesPage({ userId, userName }) {
   );
 }
 
-function TelemedicinePage({ userId, userName }) {
+function TelemedicinePage({ userId, userName, autoBookDoctor, onAutoBookClear }) {
  
   const [doctors, setDoctors] = useState([]);
   const [wallet, setWallet] = useState(null);
@@ -3844,6 +3861,14 @@ function TelemedicinePage({ userId, userName }) {
     fetchDoctors();
     fetchWallet();
   }, [userId]);
+  
+  useEffect(() => {
+    if (autoBookDoctor) {
+      setSelectedDoctor(autoBookDoctor);
+      setBookingStep(1);
+      setTimeout(() => onAutoBookClear?.(), 500);
+    }
+  }, [autoBookDoctor]);
 
   const fetchDoctors = async () => {
     setLoading(true);
@@ -3873,10 +3898,6 @@ function TelemedicinePage({ userId, userName }) {
       setBookingError('Insufficient balance. Please fund your wallet with at least N1,500 to book a consultation.');
       return;
     }
-    if (!selectedDate || !selectedTime) {
-      setBookingError('Please select a date and time.');
-      return;
-    }
 
     setBooking(true);
     try {
@@ -3895,7 +3916,7 @@ const parseWATTime = (date, time) => {
   return `${year}-${month}-${day}T${pad(hours)}:${pad(minutes)}:00+01:00`
 }
 
-const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00 AM' : '2:00 PM')
+const appointmentDate = parseWATTime(selectedDate, '9:00 AM')
 
       const { error: apptError } = await supabase.from('appointments').insert({
         user_id: userId,
@@ -3911,6 +3932,14 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
         notes: reason,
       });
       if (apptError) throw apptError;
+      // Notify doctor via Supabase notification
+      console.log('Notifying doctor:', selectedDoctor.user_id, selectedDoctor.full_name);
+await supabase.from('notifications').insert({
+  user_id: selectedDoctor.user_id,
+  title: 'New Appointment Booked',
+  message: `${userName} has booked a ${consultationType} consultation on ${selectedDate}. Concern: ${reason}. Duration: ${surveyDuration}. Severity: ${surveySeverity}.${surveyNotes ? ' Notes: ' + surveyNotes : ''}`,
+  type: 'appointment',
+});
 
       const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_and_record', {
         p_user_id: userId,
@@ -3968,6 +3997,7 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
       if (apptError) throw apptError;
       
        // Join with null token (works for testing in Agora without token auth)
+       const patientUid = 1;
        const tokenRes2 = await fetch(
         'https://ssmjjtbvrakzfsxezavp.supabase.co/functions/v1/agora-token',
         {
@@ -3976,12 +4006,12 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
             'Content-Type': 'application/json',
             'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbWpqdGJ2cmFremZzeGV6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE5NzQsImV4cCI6MjA4NzQ0Nzk3NH0.f3VNuJC0Tu7wcYOoCDvFULVpuOVLQoAS0c39bpJKXRg',
           },
-          body: JSON.stringify({ channelName: channel, uid: 0 }),
+          body: JSON.stringify({ channelName: channel, uid: 1 }),
         }
       );
       const tokenData2 = await tokenRes2.json();
       const agoraToken2 = tokenData2.token;
-      await client.join(AGORA_APP_ID, channel, agoraToken2, userId.replace(/-/g, '').slice(0, 8));
+      await client.join(AGORA_APP_ID, channel, agoraToken2, patientUid);
       if (type === 'video') {
         const [micTrack, camTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
         setLocalTrack([micTrack, camTrack]);
@@ -4023,16 +4053,31 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
   };
 
   const endCall = async () => {
-    if (localTrack) {
-      (Array.isArray(localTrack) ? localTrack : [localTrack]).forEach(t => { t.stop(); t.close(); });
+    try {
+      if (localTrack) {
+        const tracks = Array.isArray(localTrack) ? localTrack : [localTrack];
+        tracks.forEach(t => {
+          t.stop();
+          t.close();
+        });
+      }
+      if (agoraClient) {
+        await agoraClient.leave();
+      }
+      await supabase
+        .from('appointments')
+        .update({ status: 'completed' })
+        .eq('user_id', userId)
+        .eq('status', 'active');
+    } catch (e) {
+      console.error('End call error:', e);
+    } finally {
+      setCallActive(false);
+      setAgoraClient(null);
+      setLocalTrack(null);
+      setRemoteUsers([]);
+      setCallDoctor(null);
     }
-    if (agoraClient) await agoraClient.leave();
-    await supabase.from('appointments').update({ status: 'completed' }).eq('user_id', userId).eq('status', 'active');
-    setCallActive(false);
-    setAgoraClient(null);
-    setLocalTrack(null);
-    setRemoteUsers([]);
-    setCallDoctor(null);
   };
 
   const filtered = filter === 'all' ? doctors : doctors.filter(d => d.is_available === (filter === 'online'));
@@ -4158,28 +4203,6 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
             </div>
 
             <div className="form-group">
-              <label className="form-label">Preferred Time</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {['AM', 'PM'].map(period => (
-                  <div
-                    key={period}
-                    onClick={() => setSelectedTime(period)}
-                    style={{
-                      border: `1.5px solid ${selectedTime === period ? 'var(--primary)' : '#dce8eb'}`,
-                      borderRadius: 10, padding: '14px', textAlign: 'center', cursor: 'pointer',
-                      fontSize: 14, fontWeight: 700,
-                      color: selectedTime === period ? 'var(--primary)' : 'var(--navy)',
-                      background: selectedTime === period ? 'var(--primary-pale)' : 'white',
-                      fontFamily: "'Montserrat', sans-serif"
-                    }}
-                  >
-                    {period === 'AM' ? 'Morning (AM)' : 'Afternoon (PM)'}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="form-group">
               <label className="form-label">Consultation Type</label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                 {['video', 'audio', 'chat'].map(t => (
@@ -4267,7 +4290,7 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
             <button
               className="btn btn-primary"
               onClick={() => setBookingStep(2)}
-              disabled={!selectedDate || !selectedTime || !reason || !surveyDuration || !surveySeverity}
+              disabled={!selectedDate || !reason || !surveyDuration || !surveySeverity}
             >
               Review Booking
             </button>
@@ -4281,7 +4304,6 @@ const appointmentDate = parseWATTime(selectedDate, selectedTime === 'AM' ? '9:00
               <div style={{ fontWeight: 700, color: 'var(--navy)', marginBottom: 12, fontSize: 13, fontFamily: "'Montserrat',sans-serif" }}>Booking Summary</div>
               <div style={{ fontSize: 13, lineHeight: 2.2, fontFamily: "'Manrope',sans-serif" }}>
                 <div>Date: <strong>{selectedDate}</strong></div>
-                <div>Time: <strong>{selectedTime === 'AM' ? 'Morning (AM)' : 'Afternoon (PM)'}</strong></div>
                 <div>Type: <strong>{consultationType}</strong></div>
                 <div>Concern: <strong>{reason}</strong></div>
                 <div>Duration: <strong>{surveyDuration}</strong></div>
@@ -4464,6 +4486,7 @@ function DocumentsPage({ userId }) {
       </div>
 
       {/* Documents list */}
+      {/* Documents list */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>Loading...</div>
       ) : documents.length === 0 ? (
@@ -4486,13 +4509,15 @@ function DocumentsPage({ userId }) {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                
-              href={doc.file_url}
+                <a
+                  href={doc.file_url}
                   target="_blank"
                   rel="noreferrer"
                   className="btn btn-outline btn-sm"
                   style={{ textDecoration: 'none', display: 'inline-block' }}
-                  
+                >
+                  View
+                </a>
                 <button
                   className="btn btn-sm"
                   style={{ background: '#fee2e2', color: 'var(--danger)', border: 'none' }}
@@ -4505,7 +4530,6 @@ function DocumentsPage({ userId }) {
           ))}
         </div>
       )}
-
       {/* Upload Modal */}
       {showUpload && (
         <div className="modal-overlay" onClick={() => { setShowUpload(false); setSelectedFile(null); setUploadError(''); }}>
@@ -4539,20 +4563,17 @@ function DocumentsPage({ userId }) {
                   <button onClick={() => setSelectedFile(null)} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer', fontSize: 14 }}>✕</button>
                 </div>
               )}
-
               <div className="form-group" style={{ marginTop: 16 }}>
                 <label className="form-label">Category</label>
                 <select className="form-select" value={label} onChange={e => setLabel(e.target.value)}>
                   {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
-
               {uploadError && (
                 <div style={{ background: '#fee2e2', color: 'var(--danger)', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16, fontFamily: "'Manrope',sans-serif" }}>
                   {uploadError}
                 </div>
               )}
-
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                 <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowUpload(false); setSelectedFile(null); setUploadError(''); }}>Cancel</button>
                 <button className="btn btn-primary" style={{ flex: 2 }} onClick={uploadDocument} disabled={uploading || !selectedFile}>
@@ -5325,6 +5346,7 @@ export default function App() {
   const [userId, setUserId] = useState(null);
   const [doctorUser, setDoctorUser] = useState(null);
   const [doctorProfile, setDoctorProfile] = useState(null);
+  const [autoBookDoctor, setAutoBookDoctor] = useState(null);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   useEffect(() => {
@@ -5387,10 +5409,18 @@ export default function App() {
     setAuthed(true);
   };
   const pages = {
-    dashboard: <Dashboard onNav={setPage} userName={userName} userId={userId} />,
+    dashboard: <Dashboard onNav={setPage} userName={userName} userId={userId} onBook={async () => {
+      const { data } = await supabase.from('doctors').select('*').eq('status', 'approved').eq('is_available', true).limit(1).maybeSingle();
+      if (data) {
+        setAutoBookDoctor(data);
+        setPage('telemedicine');
+      } else {
+        setPage('telemedicine');
+      }
+    }} />,
     wallet: <WalletPage userId={userId} />,
     transactions: <Transactions userId={userId} userName={userName} />,
-    telemedicine: <TelemedicinePage userId={userId} userName={userName} />,
+    telemedicine: <TelemedicinePage userId={userId} userName={userName} autoBookDoctor={autoBookDoctor} onAutoBookClear={() => setAutoBookDoctor(null)} />,
     chat: <MessagesPage userId={userId} userName={userName} />,
     appointments: <AppointmentsPage userId={userId} />,
     documents: <DocumentsPage userId={userId} />,
