@@ -2825,6 +2825,7 @@ console.log('doctorProfile received:', doctorProfile);
     }
   };
   const [activePage, setActivePage] = useState('overview');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchAppointments();
@@ -2868,7 +2869,7 @@ console.log('doctorProfile received:', doctorProfile);
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       {/* Sidebar */}
-      <div className="sidebar">
+      <div className={"sidebar" + (mobileSidebarOpen ? " mobile-open" : "")}>
         <div className="sidebar-logo">
           <img
             src="/assets/logo.png"
@@ -2895,7 +2896,7 @@ console.log('doctorProfile received:', doctorProfile);
             <div
               key={item.id}
               className={'nav-item' + (activePage === item.id ? ' active' : '')}
-              onClick={() => setActivePage(item.id)}
+              onClick={() => { setActivePage(item.id); setMobileSidebarOpen(false); }}
             >
               <div className="nav-icon">{item.short}</div>
               {item.label}
@@ -2906,9 +2907,9 @@ console.log('doctorProfile received:', doctorProfile);
         <div className="sidebar-footer">
           {/* Availability toggle */}
           <div style={{ padding: '10px 8px', marginBottom: 8 }}>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: "'Manrope',sans-serif", marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Availability
-            </div>
+          <div style={{ fontSize: 11, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif", marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700 }}>
+  Availability
+</div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 13, color: isAvailable ? 'var(--success)' : 'rgba(255,255,255,0.4)', fontFamily: "'Manrope',sans-serif", fontWeight: 600 }}>
                 {isAvailable ? 'Available' : 'Unavailable'}
@@ -2938,6 +2939,28 @@ console.log('doctorProfile received:', doctorProfile);
 
       {/* Main content */}
       <div className="main-content">
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #eef2f5' }}>
+    <button
+      onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+      className="mobile-menu-btn"
+      style={{ width: 40, height: 40, borderRadius: 10, border: '1.5px solid #dce8eb', background: 'white', cursor: 'pointer', fontSize: 18, alignItems: 'center', justifyContent: 'center', display: 'none' }}
+    >
+      ☰
+    </button>
+    <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif" }}>
+      Span Healthcare
+    </div>
+    <div style={{ marginLeft: 'auto' }}>
+      <NotificationBell userId={doctorUser?.id} />
+    </div>
+  </div>
+
+  {mobileSidebarOpen && (
+    <div
+      onClick={() => setMobileSidebarOpen(false)}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 199 }}
+    />
+  )}
 
         {/* Overview */}
         {activePage === 'overview' && (
