@@ -1234,12 +1234,13 @@ function Dashboard({ onNav, userName, userId, onBook }) {
             ) : (
               <div className="schedule-list">
                 {appointments.map(a => {
-                  const { time, date } = formatApptDate(a.date);
+                  const apptTime = a.date ? new Date(a.date).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Africa/Lagos' }) : 'N/A';
+                  const apptDate = a.date ? new Date(a.date).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', timeZone: 'Africa/Lagos' }) : '';
                   return (
                     <div key={a.id} className="appt-item" style={{ padding: '10px 12px' }}>
                       <div style={{ minWidth: 56, textAlign: 'center' }}>
-                        <div className="appt-time-val" style={{ fontSize: 13 }}>{time}</div>
-                        <div className="appt-time-date">{date}</div>
+                      <div className="appt-time-val" style={{ fontSize: 13 }}>{apptTime}</div>
+                      <div className="appt-time-date">{apptDate}</div>
                       </div>
                       <div className="appt-divider" />
                       <div style={{ flex: 1 }}>
@@ -2911,7 +2912,7 @@ console.log('doctorProfile received:', doctorProfile);
   Availability
 </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 13, color: isAvailable ? 'var(--success)' : 'rgba(255,255,255,0.4)', fontFamily: "'Manrope',sans-serif", fontWeight: 600 }}>
+            <span style={{ fontSize: 13, color: isAvailable ? 'var(--success)' : 'var(--slate)', fontFamily: "'Manrope',sans-serif", fontWeight: 600 }}>
                 {isAvailable ? 'Available' : 'Unavailable'}
               </span>
               <div
@@ -3917,7 +3918,7 @@ function TelemedicinePage({ userId, userName, autoBookDoctor, onAutoBookClear })
     if (!userId || !selectedDoctor) return;
     setBookingError('');
 
-    if (!wallet || Number(wallet.balance) < 1000) {
+    if (!wallet || Number(wallet.balance) < 3,000) {
       setBookingError('Insufficient balance. Please fund your wallet with at least N1,500 to book a consultation.');
       return;
     }
@@ -3966,7 +3967,7 @@ await supabase.from('notifications').insert({
 
       const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_and_record', {
         p_user_id: userId,
-        p_amount: 1500,
+        p_amount: 3000,
         p_name: `Consultation fee — ${selectedDoctor.full_name}`,
       });
       if (deductError) throw deductError;
@@ -3979,7 +3980,7 @@ await supabase.from('notifications').insert({
       setSelectedDate('');
       setSelectedTime('');
       setReason('');
-      alert(`Booking confirmed! Your appointment with ${selectedDoctor.full_name} is scheduled for ${selectedDate} at ${selectedTime}. N1,500 has been deducted from your wallet.`);
+      alert(`Booking confirmed! Your appointment with ${selectedDoctor.full_name} is scheduled for ${selectedDate}. N3,000 has been deducted from your wallet.`);
     } catch (e) {
       setBookingError(e.message);
       setBooking(false);
@@ -3988,7 +3989,7 @@ await supabase.from('notifications').insert({
 
   const startCall = async (doctor, type) => {
     if (!wallet || Number(wallet.balance) < 1500) {
-      alert('Insufficient balance. Please fund your wallet with at least N1,500 to start a consultation.');
+      alert('Insufficient balance. Please fund your wallet with at least N3,000 to start a consultation.');
       return;
     }
   
@@ -4059,7 +4060,7 @@ await supabase.from('notifications').insert({
       // Only deduct AFTER successfully joining
       const { data: deductResult, error: deductError } = await supabase.rpc('deduct_wallet_and_record', {
         p_user_id: userId,
-        p_amount: 1500,
+        p_amount: 3000,
         p_name: `${type === 'video' ? 'Video' : 'Audio'} consultation — ${doctor.full_name}`,
       });
       if (deductError) throw deductError;
@@ -4111,7 +4112,7 @@ await supabase.from('notifications').insert({
       <div className="topbar">
         <div>
           <div className="page-title">Telemedicine</div>
-          <div className="page-sub">Consult with qualified doctors from anywhere — N1,500 flat rate</div>
+          <div className="page-sub">Consult with qualified doctors from anywhere — N3,000 flat rate</div>
         </div>
         <div style={{ display: 'flex', gap: 7 }}>
           {['all', 'online', 'offline'].map(f => (
@@ -4122,7 +4123,7 @@ await supabase.from('notifications').insert({
         </div>
       </div>
 
-      {wallet && Number(wallet.balance) < 1000 && (
+      {wallet && Number(wallet.balance) < 3000 && (
         <div style={{ background: '#fee2e2', border: '1.5px solid var(--danger)', borderRadius: 12, padding: '14px 18px', marginBottom: 20, fontSize: 13, color: '#991b1b', fontFamily: "'Manrope',sans-serif" }}>
           <strong>Low balance:</strong> Your wallet balance is insufficient for a consultation. Please fund your wallet with at least N1,500.
         </div>
@@ -4138,7 +4139,7 @@ await supabase.from('notifications').insert({
           <div style={{ fontSize: 12, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>Total Doctors</div>
         </div>
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 18 }}>
-          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--warning)' }}>N1,500</div>
+          <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat',sans-serif", color: 'var(--warning)' }}>N3,000</div>
           <div style={{ fontSize: 12, color: 'var(--slate)', fontFamily: "'Manrope',sans-serif" }}>Flat Rate Per Session</div>
         </div>
       </div>
@@ -4332,7 +4333,7 @@ await supabase.from('notifications').insert({
                 <div>Duration: <strong>{surveyDuration}</strong></div>
                 <div>Severity: <strong>{surveySeverity}</strong></div>
                 {surveyNotes && <div>Notes: <strong>{surveyNotes}</strong></div>}
-                <div>Fee: <strong style={{ color: 'var(--danger)' }}>N1,500</strong> will be deducted</div>
+                <div>Fee: <strong style={{ color: 'var(--danger)' }}>N3,000</strong> will be deducted</div>
               </div>
             </div>
 
@@ -4343,7 +4344,7 @@ await supabase.from('notifications').insert({
             <div style={{ display: 'flex', gap: 10 }}>
               <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setBookingStep(1)}>Back</button>
               <button className="btn btn-primary" style={{ flex: 2 }} onClick={confirmBooking} disabled={booking}>
-                {booking ? 'Confirming...' : 'Confirm Booking — N1,500'}
+                {booking ? 'Confirming...' : 'Confirm Booking — N3,000'}
               </button>
             </div>
           </>
