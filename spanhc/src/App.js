@@ -3918,7 +3918,7 @@ function TelemedicinePage({ userId, userName, autoBookDoctor, onAutoBookClear })
     if (!userId || !selectedDoctor) return;
     setBookingError('');
 
-    if (!wallet || Number(wallet.balance) < 3,000) {
+    if (!wallet || Number(wallet.balance) < 3000) {
       setBookingError('Insufficient balance. Please fund your wallet with at least N1,500 to book a consultation.');
       return;
     }
