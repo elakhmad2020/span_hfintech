@@ -114,15 +114,17 @@ export default function App() {
     );
   }
 
-// ── Onboarding route ─────────────────────────────────────────────────────
-if (window.location.pathname === '/onboarding') {
-  return (
-    <>
-      <style>{styles}</style>
-      <Onboarding />
-    </>
-  );
-}
+  // ── Onboarding route ─────────────────────────────────────────────────────
+  if (window.location.pathname === '/onboarding') {
+    return (
+      <>
+        <style>{styles}</style>
+        <Onboarding />
+      </>
+    );
+  }
+
+  
 
   // ── Not logged in ─────────────────────────────────────────────────────────
   if (!user || !userType) {
