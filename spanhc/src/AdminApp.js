@@ -732,6 +732,383 @@ function AppointmentsPage() {
   );
 }
 
+// ── APPLICATIONS PAGE ──
+function ApplicationsPage() {
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selected, setSelected] = useState(null);
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => { fetchApplications(); }, []);
+
+  const fetchApplications = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('onboarding_applications')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (!error) setApplications(data || []);
+    setLoading(false);
+  };
+
+  const openApplication = (app) => {
+    setSelected(app);
+    setNotes(app.admin_notes || '');
+    setSuccess('');
+  };
+
+  const updateStatus = async (id, status) => {
+    setSaving(true);
+    const { error } = await supabase
+      .from('onboarding_applications')
+      .update({ status, admin_notes: notes, reviewed_at: new Date().toISOString() })
+      .eq('id', id);
+    if (!error) {
+      setApplications(applications.map(a => a.id === id ? { ...a, status, admin_notes: notes } : a));
+      setSelected(prev => ({ ...prev, status, admin_notes: notes }));
+      setSuccess('Updated successfully');
+      setTimeout(() => setSuccess(''), 3000);
+    }
+    setSaving(false);
+  };
+
+  const saveNotes = async (id) => {
+    setSaving(true);
+    const { error } = await supabase
+      .from('onboarding_applications')
+      .update({ admin_notes: notes })
+      .eq('id', id);
+    if (!error) {
+      setApplications(applications.map(a => a.id === id ? { ...a, admin_notes: notes } : a));
+      setSuccess('Notes saved');
+      setTimeout(() => setSuccess(''), 3000);
+    }
+    setSaving(false);
+  };
+
+  const filtered = applications
+    .filter(a => statusFilter === 'all' || a.status === statusFilter)
+    .filter(a => !search ||
+      a.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      a.email?.toLowerCase().includes(search.toLowerCase()) ||
+      a.phone_primary?.includes(search)
+    );
+
+  const counts = {
+    all: applications.length,
+    pending: applications.filter(a => a.status === 'pending').length,
+    approved: applications.filter(a => a.status === 'approved').length,
+    rejected: applications.filter(a => a.status === 'rejected').length,
+    account_created: applications.filter(a => a.status === 'account_created').length,
+  };
+
+  const Field = ({ label, value }) => (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 13, color: 'var(--navy)', fontWeight: 600, wordBreak: 'break-word' }}>{value || '—'}</div>
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="admin-topbar">
+        <div>
+          <div className="admin-page-title">Applications</div>
+          <div className="admin-page-sub">Onboarding applications from prospective members</div>
+        </div>
+        <span className="badge badge-warning" style={{ fontSize: 13, padding: '6px 14px' }}>
+          {counts.pending} Pending Review
+        </span>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
+        {[
+          { label: 'Total', value: counts.all, color: 'var(--primary)', bg: 'var(--primary-pale)' },
+          { label: 'Pending', value: counts.pending, color: '#ca8a04', bg: '#fef9c3' },
+          { label: 'Approved', value: counts.approved, color: '#16a34a', bg: '#dcfce7' },
+          { label: 'Account Created', value: counts.account_created, color: 'var(--primary)', bg: 'var(--primary-pale)' },
+        ].map(s => (
+          <div key={s.label} className="stat-card" style={{ borderTopColor: s.color }}>
+            <div className="stat-tag" style={{ background: s.bg, color: s.color, borderRadius: 5, padding: '2px 8px', fontSize: 10 }}>{s.label}</div>
+            <div className="stat-value" style={{ marginTop: 8 }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
+        {/* Filters */}
+        <div className="tab-bar">
+          {[
+            { key: 'all', label: 'All' },
+            { key: 'pending', label: 'Pending' },
+            { key: 'approved', label: 'Approved' },
+            { key: 'account_created', label: 'Account Created' },
+            { key: 'rejected', label: 'Rejected' },
+          ].map(t => (
+            <button key={t.key} className={`tab-btn${statusFilter === t.key ? ' active' : ''}`} onClick={() => setStatusFilter(t.key)}>
+              {t.label} ({counts[t.key] ?? 0})
+            </button>
+          ))}
+        </div>
+
+        <div className="search-bar">
+          <input
+            className="search-input"
+            placeholder="Search by name, email or phone..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <button className="btn btn-outline" onClick={fetchApplications} style={{ padding: '8px 16px', fontSize: 12, width: 'auto' }}>Refresh</button>
+        </div>
+
+        {loading ? <div className="empty-state">Loading applications...</div>
+        : filtered.length === 0 ? <div className="empty-state">No applications found.</div>
+        : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Applicant</th>
+                <th>Account Type</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>State</th>
+                <th>Applied</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(app => (
+                <tr key={app.id}>
+                  <td style={{ fontWeight: 700 }}>{app.full_name || '—'}</td>
+                  <td>
+                    <span className="badge badge-info" style={{ fontSize: 10 }}>{app.account_type || '—'}</span>
+                  </td>
+                  <td style={{ color: 'var(--slate)' }}>{app.phone_primary || '—'}</td>
+                  <td style={{ color: 'var(--slate)', fontSize: 12 }}>{app.email || '—'}</td>
+                  <td style={{ color: 'var(--slate)' }}>{app.state || '—'}</td>
+                  <td style={{ color: 'var(--slate)', fontSize: 12 }}>
+                    {app.created_at ? new Date(app.created_at).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                  </td>
+                  <td>
+                    <span className={`badge ${
+                      app.status === 'approved' || app.status === 'account_created' ? 'badge-success' :
+                      app.status === 'rejected' ? 'badge-danger' : 'badge-warning'
+                    }`} style={{ fontSize: 10 }}>
+                      {app.status === 'account_created' ? 'Account Created' : app.status || 'pending'}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn"
+                      style={{ padding: '5px 12px', fontSize: 11, background: 'var(--primary-pale)', color: 'var(--primary)', border: 'none' }}
+                      onClick={() => openApplication(app)}
+                    >
+                      Review
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Detail Modal */}
+      {selected && (
+        <div className="modal-overlay" onClick={() => setSelected(null)}>
+          <div className="modal" style={{ maxWidth: 680 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">{selected.full_name}</div>
+                <span className={`badge ${
+                  selected.status === 'approved' || selected.status === 'account_created' ? 'badge-success' :
+                  selected.status === 'rejected' ? 'badge-danger' : 'badge-warning'
+                }`} style={{ fontSize: 11, marginTop: 4 }}>
+                  {selected.status === 'account_created' ? 'Account Created' : selected.status || 'pending'}
+                </span>
+              </div>
+              <button className="modal-close" onClick={() => setSelected(null)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ padding: '0 0 24px' }}>
+
+              {/* Tabs inside modal */}
+              {['Personal','Contact','Health','Declarations','Admin Notes'].map((tab, i) => {
+                const tabId = ['personal','contact','health','declarations','notes'][i];
+                return null; // handled below
+              })}
+
+              <div style={{ padding: '0 26px' }}>
+
+                {success && (
+                  <div style={{ background: '#dcfce7', color: '#166634', padding: '10px 14px', borderRadius: 9, fontSize: 13, marginBottom: 16, marginTop: 16 }}>
+                    {success}
+                  </div>
+                )}
+
+                {/* Section: Account */}
+                <div style={{ background: 'var(--primary-pale)', borderRadius: 12, padding: '14px 18px', marginTop: 20, marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: "'Montserrat',sans-serif", marginBottom: 10 }}>Account</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <Field label="Account Type" value={selected.account_type} />
+                    <Field label="Deposit Plan" value={selected.deposit_plan} />
+                    <Field label="Applied" value={selected.created_at ? new Date(selected.created_at).toLocaleDateString('en-NG', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'} />
+                  </div>
+                </div>
+
+                {/* Section: Personal */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>Personal Details</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <Field label="Full Name" value={selected.full_name} />
+                    <Field label="Date of Birth" value={selected.date_of_birth} />
+                    <Field label="Gender" value={selected.gender} />
+                    <Field label="Marital Status" value={selected.marital_status} />
+                    <Field label="NIN" value={selected.nin} />
+                    <Field label="BVN" value={selected.bvn} />
+                    <Field label="ID Type" value={selected.id_type} />
+                    <Field label="ID Number" value={selected.id_number} />
+                  </div>
+                </div>
+
+                {/* Section: Contact */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>Contact Information</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <Field label="Primary Phone" value={selected.phone_primary} />
+                    <Field label="WhatsApp" value={selected.phone_whatsapp} />
+                    <Field label="Email" value={selected.email} />
+                    <Field label="State" value={selected.state} />
+                    <Field label="LGA" value={selected.lga} />
+                    <Field label="Area" value={selected.address_area} />
+                    <Field label="Street" value={selected.address_street} />
+                    <Field label="Landmark" value={selected.landmark} />
+                  </div>
+                </div>
+
+                {/* Section: Health + NOK */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>Health & Next of Kin</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <Field label="Blood Group" value={selected.blood_group} />
+                    <Field label="Genotype" value={selected.genotype} />
+                    <Field label="Chronic Conditions" value={selected.chronic_conditions?.join(', ')} />
+                    <Field label="NOK Name" value={selected.nok_full_name} />
+                    <Field label="NOK Relationship" value={selected.nok_relationship} />
+                    <Field label="NOK Phone" value={selected.nok_phone} />
+                  </div>
+                </div>
+
+                {/* Section: Referral */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>Referral</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <Field label="Referral Source" value={selected.referral_source} />
+                    <Field label="Referral Code" value={selected.referral_code} />
+                  </div>
+                </div>
+
+                {/* Section: Declarations */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>Declarations</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {[
+                      { field: 'consent_accuracy', label: 'Confirmed accuracy of information' },
+                      { field: 'consent_ndpa', label: 'Consented to NDPA data processing' },
+                      { field: 'consent_wakala', label: 'Acknowledged Wakala fee structure' },
+                      { field: 'consent_mudarabah', label: 'Acknowledged Mudarabah arrangement' },
+                      { field: 'consent_account_creation', label: 'Authorised account creation' },
+                    ].map(d => (
+                      <div key={d.field} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 20, height: 20, borderRadius: 5, background: selected[d.field] ? '#dcfce7' : '#fee2e2', border: `1.5px solid ${selected[d.field] ? '#86efac' : '#fca5a5'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: selected[d.field] ? '#16a34a' : '#dc2626', flexShrink: 0 }}>
+                          {selected[d.field] ? '✓' : '✕'}
+                        </div>
+                        <span style={{ fontSize: 13, color: 'var(--navy)' }}>{d.label}</span>
+                      </div>
+                    ))}
+                    <div style={{ marginTop: 6, fontSize: 12, color: 'var(--slate)' }}>
+                      Declaration Date: <strong>{selected.declaration_date || '—'}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Admin Notes */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', fontFamily: "'Montserrat',sans-serif", marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>Admin Notes</div>
+                  <textarea
+                    style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #dce8eb', borderRadius: 9, fontSize: 13, fontFamily: "'Manrope',sans-serif", color: 'var(--navy)', background: 'var(--bg)', outline: 'none', resize: 'vertical', minHeight: 80, boxSizing: 'border-box' }}
+                    placeholder="Add internal notes about this applicant..."
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                  />
+                  <button
+                    className="btn btn-outline"
+                    style={{ marginTop: 8, padding: '7px 16px', fontSize: 12, width: 'auto' }}
+                    onClick={() => saveNotes(selected.id)}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : 'Save Notes'}
+                  </button>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: 10, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                  {selected.status !== 'account_created' && (
+                    <button
+                      className="btn btn-success"
+                      style={{ flex: 1, justifyContent: 'center' }}
+                      onClick={() => updateStatus(selected.id, 'account_created')}
+                      disabled={saving}
+                    >
+                      Mark Account Created
+                    </button>
+                  )}
+                  {selected.status !== 'approved' && selected.status !== 'account_created' && (
+                    <button
+                      className="btn btn-success"
+                      style={{ flex: 1, justifyContent: 'center' }}
+                      onClick={() => updateStatus(selected.id, 'approved')}
+                      disabled={saving}
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {selected.status !== 'rejected' && (
+                    <button
+                      className="btn btn-danger"
+                      style={{ flex: 1, justifyContent: 'center' }}
+                      onClick={() => updateStatus(selected.id, 'rejected')}
+                      disabled={saving}
+                    >
+                      Reject
+                    </button>
+                  )}
+                  {selected.status === 'rejected' && (
+                    <button
+                      className="btn btn-success"
+                      style={{ flex: 1, justifyContent: 'center' }}
+                      onClick={() => updateStatus(selected.id, 'approved')}
+                      disabled={saving}
+                    >
+                      Reopen & Approve
+                    </button>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── MAIN ADMIN APP ──
 export default function AdminApp() {
   const [authed, setAuthed] = useState(false);
@@ -761,6 +1138,7 @@ export default function AdminApp() {
     users: <UsersPage />,
     transactions: <TransactionsPage />,
     appointments: <AppointmentsPage />,
+    applications: <ApplicationsPage />,
   };
 
   const navItems = [
@@ -770,6 +1148,7 @@ export default function AdminApp() {
     { id: 'transactions', label: 'Transactions', short: 'TX' },
     { id: 'appointments', label: 'Appointments', short: 'AP' },
     { id: 'onboarding', label: 'Applications', short: 'APP' },
+    { id: 'applications', label: 'Applications', short: 'AP' },
   ];
 
   if (checking) return (
