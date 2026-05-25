@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './supabase';
 import { styles, AuthScreen, PasswordResetModal, Sidebar, NotificationBell } from './Shared';
 import {
@@ -6,9 +6,10 @@ import {
   MessagesPage, AppointmentsPage, DocumentsPage,
   ProfilePage, DependentsPage, WellnessPage, ClaimsPage, Settings
 } from './Patient';
-import DoctorDashboard from './Doctor';
-import AdminApp from './AdminApp';
-import Onboarding from './Onboarding';
+
+const DoctorDashboard = lazy(() => import('./Doctor'));
+const AdminApp = lazy(() => import('./AdminApp'));
+const Onboarding = lazy(() => import('./Onboarding'));
 
 const ADMIN_EMAIL = 'ahmadabdullahibayero@gmail.com';
 
@@ -117,10 +118,15 @@ export default function App() {
   // ── Onboarding route ─────────────────────────────────────────────────────
   if (window.location.pathname === '/onboarding') {
     return (
-      <>
+      <Suspense fallback={
+        <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#f4f9fa' }}>
+          <div style={{ width:52, height:52, borderRadius:14, background:'#459DAF', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:11, color:'white', marginBottom:16 }}>SPAN</div>
+          <div style={{ fontSize:13, color:'#5a7a8a' }}>Loading...</div>
+        </div>
+      }>
         <style>{styles}</style>
         <Onboarding />
-      </>
+      </Suspense>
     );
   }
 
@@ -138,17 +144,23 @@ export default function App() {
 
   // ── Admin ─────────────────────────────────────────────────────────────────
   if (userType === 'admin') {
-    return <AdminApp />;
+    return (
+      <Suspense fallback={<div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f4f9fa', fontSize:13, color:'#5a7a8a' }}>Loading...</div>}>
+        <AdminApp />
+      </Suspense>
+    );
   }
 
   // ── Doctor ────────────────────────────────────────────────────────────────
   if (userType === 'doctor') {
     return (
-      <DoctorDashboard
-        doctorProfile={doctorProfile}
-        doctorUser={user}
-        onLogout={handleLogout}
-      />
+      <Suspense fallback={<div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f4f9fa', fontSize:13, color:'#5a7a8a' }}>Loading...</div>}>
+        <DoctorDashboard
+          doctorProfile={doctorProfile}
+          doctorUser={user}
+          onLogout={handleLogout}
+        />
+      </Suspense>
     );
   }
 
