@@ -8,6 +8,7 @@ import {
 } from './Patient';
 import DoctorDashboard from './Doctor';
 import AdminApp from './AdminApp';
+import Onboarding from './Onboarding';
 
 const ADMIN_EMAIL = 'ahmadabdullahibayero@gmail.com';
 
@@ -112,6 +113,16 @@ export default function App() {
       </>
     );
   }
+
+// ── Onboarding route ─────────────────────────────────────────────────────
+if (window.location.pathname === '/onboarding') {
+  return (
+    <>
+      <style>{styles}</style>
+      <Onboarding />
+    </>
+  );
+}
 
   // ── Not logged in ─────────────────────────────────────────────────────────
   if (!user || !userType) {

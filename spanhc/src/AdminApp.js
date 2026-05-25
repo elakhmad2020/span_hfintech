@@ -769,6 +769,7 @@ export default function AdminApp() {
     { id: 'users', label: 'Users', short: 'US' },
     { id: 'transactions', label: 'Transactions', short: 'TX' },
     { id: 'appointments', label: 'Appointments', short: 'AP' },
+    { id: 'onboarding', label: 'Applications', short: 'APP' },
   ];
 
   if (checking) return (
